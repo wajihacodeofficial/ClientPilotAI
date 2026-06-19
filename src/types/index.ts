@@ -152,6 +152,7 @@ export interface AppState {
   sidebarCollapsed: boolean;
   darkMode: boolean;
   userRole: 'admin' | 'user' | null;
+  userEmail: string | null;
 
   // Actions
   setLeads: (leads: Lead[]) => void;
@@ -162,6 +163,7 @@ export interface AppState {
   toggleSidebar: () => void;
   toggleDarkMode: () => void;
   setUserRole: (role: 'admin' | 'user' | null) => void;
+  setUserEmail: (email: string | null) => void;
   updateLeadStage: (id: string, stage: PipelineStage) => void;
   updateLeadOutreach: (id: string, message: OutreachMessage) => void;
 }
