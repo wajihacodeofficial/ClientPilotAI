@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import type { AppState, FilterState, Lead, PipelineStage, OutreachMessage } from '@/types'
+import { supabase } from '@/lib/supabaseClient'
 
 const defaultFilters: FilterState = {
   scoreBand: 'all',
@@ -10,7 +11,10 @@ const defaultFilters: FilterState = {
   searchQuery: '',
 }
 
-export const useAppStore = create<AppState>((set) => ({
+export const useAppStore = create<AppState & {
+  updateLeadScore: (id: string, scoreData: any) => void;
+  initRealtime: () => () => void;
+}>((set, get) => ({
   leads: [],
   selectedLeadId: null,
   filters: defaultFilters,
@@ -48,8 +52,61 @@ export const useAppStore = create<AppState>((set) => ({
     set((state) => ({
       leads: state.leads.map((l) =>
         l.id === id
-          ? { ...l, outreachMessages: [message, l.outreachMessages[1]] as [OutreachMessage, OutreachMessage] }
+          ? { ...l, outreachMessages: [message, ...(l.outreachMessages || [])] }
           : l
       ),
     })),
+    
+  updateLeadScore: (id: string, scoreData: any) =>
+    set((state) => {
+      const updater = (l: Lead) => {
+        if (l.id !== id) return l;
+        return {
+          ...l,
+          score: scoreData.overall_score,
+          scoreBreakdown: {
+            digitalPresenceGap: scoreData.digital_presence_gap,
+            categoryFit: scoreData.category_fit,
+            reviewActivity: scoreData.review_activity,
+            marketDensity: scoreData.market_density,
+            competitorPresence: scoreData.competitor_presence,
+          },
+          aiAnalysis: scoreData.ai_reasoning
+        };
+      };
+      
+      return {
+        leads: state.leads.map(updater),
+        discoveryResults: state.discoveryResults.map(updater),
+      };
+    }),
+
+  initRealtime: () => {
+    console.log('Initializing Supabase Realtime subscriptions...');
+    
+    // Subscribe to leads updates (e.g. stage changes by other users)
+    const leadsChannel = supabase.channel('leads_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'leads' }, (payload) => {
+        console.log('Realtime leads change received!', payload);
+        if (payload.eventType === 'INSERT') {
+           // We might want to fetch full lead data here or push it manually
+        }
+      })
+      .subscribe();
+
+    // Subscribe to lead scores arriving asynchronously
+    const scoresChannel = supabase.channel('scores_channel')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_scores' }, (payload) => {
+        console.log('Realtime score change received!', payload);
+        if (payload.new && payload.new.lead_id) {
+          get().updateLeadScore(payload.new.lead_id, payload.new);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(leadsChannel);
+      supabase.removeChannel(scoresChannel);
+    };
+  }
 }))

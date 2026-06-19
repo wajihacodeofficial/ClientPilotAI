@@ -1,10 +1,18 @@
-import { Moon, Sun, Bell, ChevronDown } from 'lucide-react'
+import { Moon, Sun, Bell, ChevronDown, LogOut } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { Avatar, Button } from '@/components/ui'
+import { supabase } from '@/lib/supabaseClient'
+import { useNavigate } from 'react-router-dom'
 
 export function TopBar() {
   const darkMode = useAppStore((s) => s.darkMode)
   const toggleDarkMode = useAppStore((s) => s.toggleDarkMode)
+  const navigate = useNavigate()
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    navigate('/login')
+  }
 
   return (
     <header className="h-14 shrink-0 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-5 z-10">
@@ -47,6 +55,11 @@ export function TopBar() {
             <p className="text-xs text-zinc-400 leading-none mt-0.5">Admin</p>
           </div>
         </div>
+
+        {/* Logout */}
+        <Button variant="ghost" size="icon" onClick={handleLogout} title="Log out" className="text-zinc-500 hover:text-red-500">
+          <LogOut className="h-4 w-4" />
+        </Button>
       </div>
     </header>
   )
