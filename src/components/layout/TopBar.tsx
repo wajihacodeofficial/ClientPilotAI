@@ -8,6 +8,7 @@ export function TopBar() {
   const darkMode = useAppStore((s) => s.darkMode)
   const toggleDarkMode = useAppStore((s) => s.toggleDarkMode)
   const userRole = useAppStore((s) => s.userRole)
+  const userEmail = useAppStore((s) => s.userEmail)
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -55,8 +56,8 @@ export function TopBar() {
             <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 leading-none">
               {userRole === 'admin' ? 'Admin User' : 'Normal User'}
             </p>
-            <p className="text-[10px] text-zinc-400 leading-none mt-0.5 uppercase tracking-wide">
-              {userRole || 'User'}
+            <p className="text-[10px] text-zinc-400 leading-none mt-0.5 tracking-wide">
+              {userEmail || 'user@example.com'}
             </p>
           </div>
         </div>
