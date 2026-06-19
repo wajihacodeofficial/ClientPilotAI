@@ -10,6 +10,7 @@ export function TopBar() {
     <header className="h-14 shrink-0 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center justify-between px-5 z-10">
       {/* Left: workspace name */}
       <div className="flex items-center gap-2">
+        <img src="/logo.png" alt="" className="h-5 w-5 rounded object-cover opacity-70" />
         <span className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
           Acme Software Agency
         </span>
@@ -19,18 +20,18 @@ export function TopBar() {
       {/* Right: live indicator + actions */}
       <div className="flex items-center gap-3">
         {/* Live indicator */}
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950 border border-emerald-200 dark:border-emerald-800">
+        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-950 border border-teal-200 dark:border-teal-800">
           <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-500 opacity-60" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-500 opacity-60" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500" />
           </span>
-          <span className="text-xs font-medium text-emerald-700 dark:text-emerald-400">Live</span>
+          <span className="text-xs font-medium text-teal-700 dark:text-teal-400">Live</span>
         </div>
 
-        {/* Notifications (decorative) */}
+        {/* Notifications */}
         <button className="relative h-8 w-8 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 transition-colors">
           <Bell className="h-4 w-4" />
-          <span className="absolute top-1 right-1 h-1.5 w-1.5 rounded-full bg-indigo-500" />
+          <span className="absolute top-1.5 right-1.5 h-1.5 w-1.5 rounded-full bg-teal-500" />
         </button>
 
         {/* Dark mode toggle */}
