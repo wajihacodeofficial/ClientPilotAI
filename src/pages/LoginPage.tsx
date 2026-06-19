@@ -1,7 +1,7 @@
-import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabaseClient'
-import { Button, Input, Label, Card } from '@/components/ui'
+import { useAppStore } from '@/store/useAppStore'
+import { Button, Input, Label, Card, Separator } from '@/components/ui'
 import { Zap, Loader2 } from 'lucide-react'
 
 export function LoginPage() {
@@ -10,6 +10,7 @@ export function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const setUserRole = useAppStore(s => s.setUserRole)
   
   const navigate = useNavigate()
 
@@ -32,6 +33,8 @@ export function LoginPage() {
           password,
         })
         if (error) throw error
+        // Set role based on email for demo purposes, normally this would come from the profiles table
+        setUserRole(email.includes('admin') ? 'admin' : 'user')
         navigate('/')
       }
     } catch (err: any) {
@@ -39,6 +42,12 @@ export function LoginPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleDemoLogin = (role: 'admin' | 'user') => {
+    // For demo purposes, we bypass real auth and just set the role
+    setUserRole(role)
+    navigate('/')
   }
 
   return (
@@ -105,6 +114,20 @@ export function LoginPage() {
           >
             {isSignUp ? 'Sign in' : 'Sign up'}
           </button>
+        </div>
+
+        <Separator className="my-4" />
+
+        <div className="space-y-2">
+          <p className="text-xs text-center text-zinc-500 font-medium uppercase tracking-wider">Demo Login (Bypass Auth)</p>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1 text-xs" onClick={() => handleDemoLogin('admin')}>
+              Login as Admin
+            </Button>
+            <Button variant="outline" className="flex-1 text-xs" onClick={() => handleDemoLogin('user')}>
+              Login as User
+            </Button>
+          </div>
         </div>
       </Card>
     </div>

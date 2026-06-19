@@ -22,6 +22,7 @@ export const useAppStore = create<AppState & {
   isDiscovering: false,
   sidebarCollapsed: false,
   darkMode: false,
+  userRole: null,
 
   setLeads: (leads: Lead[]) => set({ leads }),
   setSelectedLeadId: (id: string | null) => set({ selectedLeadId: id }),
@@ -41,6 +42,7 @@ export const useAppStore = create<AppState & {
       }
       return { darkMode: next }
     }),
+  setUserRole: (role: 'admin' | 'user' | null) => set({ userRole: role }),
   updateLeadStage: (id: string, stage: PipelineStage) =>
     set((state) => ({
       leads: state.leads.map((l) => (l.id === id ? { ...l, pipelineStage: stage } : l)),

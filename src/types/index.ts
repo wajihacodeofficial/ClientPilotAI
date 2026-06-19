@@ -151,6 +151,7 @@ export interface AppState {
   isDiscovering: boolean;
   sidebarCollapsed: boolean;
   darkMode: boolean;
+  userRole: 'admin' | 'user' | null;
 
   // Actions
   setLeads: (leads: Lead[]) => void;
@@ -160,6 +161,7 @@ export interface AppState {
   setIsDiscovering: (val: boolean) => void;
   toggleSidebar: () => void;
   toggleDarkMode: () => void;
+  setUserRole: (role: 'admin' | 'user' | null) => void;
   updateLeadStage: (id: string, stage: PipelineStage) => void;
   updateLeadOutreach: (id: string, message: OutreachMessage) => void;
 }
