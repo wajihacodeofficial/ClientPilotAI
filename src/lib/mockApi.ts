@@ -80,7 +80,7 @@ export async function generateOutreach(leadId: string): Promise<OutreachMessage>
     body: result.content,
     status: result.status,
     createdAt: result.created_at,
-  };
+  } as OutreachMessage;
 }
 
 export async function sendOutreach(leadId: string, message: OutreachMessage): Promise<void> {

@@ -56,7 +56,7 @@ export const useAppStore = create<AppState & {
     set((state) => ({
       leads: state.leads.map((l) =>
         l.id === id
-          ? { ...l, outreachMessages: [message, ...(l.outreachMessages || [])] }
+          ? { ...l, outreachMessages: [message, ...(l.outreachMessages ?? [])] as OutreachMessage[] }
           : l
       ),
     })),
@@ -102,8 +102,9 @@ export const useAppStore = create<AppState & {
     const scoresChannel = supabase.channel('scores_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_scores' }, (payload) => {
         console.log('Realtime score change received!', payload);
-        if (payload.new && payload.new.lead_id) {
-          get().updateLeadScore(payload.new.lead_id, payload.new);
+        const record = payload.new as Record<string, any>;
+        if (record && record['lead_id']) {
+          get().updateLeadScore(record['lead_id'], record);
         }
       })
       .subscribe();

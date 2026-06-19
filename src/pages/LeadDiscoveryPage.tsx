@@ -7,9 +7,9 @@ import {
 import {
   Button, Badge, Card, Input, Select, Slider, Label, Skeleton,
 } from '@/components/ui'
-import { discoverLeads, type ProgressStep } from '@/lib/mockApi'
+import { discoverLeads } from '@/lib/mockApi'
 import { useAppStore } from '@/store/useAppStore'
-import type { BusinessCategory, Lead } from '@/types'
+import type { BusinessCategory, Lead, ProgressStep } from '@/types'
 import { cn, getCategoryLabel, getScoreBg, getScoreColor } from '@/lib/utils'
 
 // ============================================================

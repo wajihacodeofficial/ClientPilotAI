@@ -41,10 +41,19 @@ export interface ScoreBreakdown {
 // ============================================================
 
 export interface OutreachMessage {
+  id?: string;
   subject: string;
   body: string;
-  generatedAt: string; // ISO date string
-  variant: number; // 1 or 2 (for "regenerate" toggle)
+  generatedAt?: string; // ISO date string
+  createdAt?: string;
+  status?: 'draft' | 'sent';
+  variant?: number; // 1 or 2 (for "regenerate" toggle)
+}
+
+export interface ProgressStep {
+  id: string;
+  label: string;
+  status: 'pending' | 'active' | 'done' | 'error';
 }
 
 // ============================================================
@@ -68,7 +77,7 @@ export interface Lead {
   discoveredAt: string; // ISO date string
   distance?: number; // km from search center
   aiAnalysis: string; // Mock GPT reasoning text
-  outreachMessages: [OutreachMessage, OutreachMessage]; // Two variants for "regenerate"
+  outreachMessages: OutreachMessage[]; // Outreach message variants
   latitude?: number;
   longitude?: number;
 }

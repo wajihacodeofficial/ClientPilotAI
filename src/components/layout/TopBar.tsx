@@ -9,11 +9,15 @@ export function TopBar() {
   const toggleDarkMode = useAppStore((s) => s.toggleDarkMode)
   const userRole = useAppStore((s) => s.userRole)
   const userEmail = useAppStore((s) => s.userEmail)
+  const setUserRole = useAppStore((s) => s.setUserRole)
+  const setUserEmail = useAppStore((s) => s.setUserEmail)
   const navigate = useNavigate()
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
-    navigate('/login')
+    setUserRole(null)
+    setUserEmail(null)
+    navigate('/')
   }
 
   return (
