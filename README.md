@@ -1,73 +1,50 @@
-# React + TypeScript + Vite
+# Client Pilot AI - Full Stack
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This repository contains the full-stack code for Client Pilot AI.
 
-Currently, two official plugins are available:
+## Project Structure
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `/` - Frontend (Vite + React + TS + Tailwind + shadcn/ui)
+- `/backend` - Backend (Node.js + Express + TS)
+- `/supabase/migrations` - Database schema and RLS policies
 
-## React Compiler
+## Prerequisites
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+1. Node.js (v18+)
+2. A Supabase project (local or remote)
+3. OpenAI API Key
 
-## Expanding the ESLint configuration
+## Setup Instructions
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 1. Database Setup (Supabase)
+1. In your Supabase project, go to the SQL Editor and run the script located in `supabase/migrations/00001_initial_schema.sql`.
+2. This creates the required tables (`workspaces`, `profiles`, `leads`, etc.) and enforces Row Level Security (RLS).
+3. Under Database -> Replication, ensure `leads` and `lead_scores` tables are enabled for Realtime.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### 2. Backend Setup
+1. Open a terminal and navigate to `/backend`.
+2. Run `npm install` (already done if scaffolding succeeded).
+3. Create a `.env` file in `/backend` with the following:
+   ```env
+   PORT=3001
+   SUPABASE_URL=your_supabase_project_url
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+   SUPABASE_JWT_SECRET=your_supabase_jwt_secret
+   OPENAI_API_KEY=your_openai_api_key
+   ```
+4. Start the backend: `npm run dev` (you may need to add a dev script like `"dev": "nodemon --watch src --exec ts-node src/index.ts"` to package.json).
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+### 3. Frontend Setup
+1. In the root directory, create a `.env.local` file:
+   ```env
+   VITE_SUPABASE_URL=your_supabase_project_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_API_URL=http://localhost:3001/api
+   ```
+2. Run `npm install` (if you haven't already).
+3. Start the Vite dev server: `npm run dev`.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Running the app
+1. Navigate to `http://localhost:5173`.
+2. Sign up for a new account. This will automatically create a User in Supabase Auth.
+3. *Note: You will need a database trigger or manual step to insert a row into `workspaces` and `profiles` for the new user before they can use the app fully.*
