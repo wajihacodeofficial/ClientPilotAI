@@ -5,16 +5,17 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { LeadDiscoveryPage } from '@/pages/LeadDiscoveryPage'
 import { PipelinePage } from '@/pages/PipelinePage'
 import { LeadsPage } from '@/pages/LeadsPage'
-import { LoginPage } from '@/pages/LoginPage'
+import { SettingsPage } from '@/pages/SettingsPage'
+import { useAppStore } from '@/store/useAppStore'
+import { Navigate } from 'react-router-dom'
 
-// A simple settings stub
-function SettingsPage() {
-  return (
-    <div className="p-6">
-      <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Settings</h1>
-      <p className="text-sm text-zinc-500 mt-2">Manage your workspace preferences here.</p>
-    </div>
-  )
+// Role Guard for Admin Panel
+function AdminGuard({ children }: { children: React.ReactNode }) {
+  const userRole = useAppStore((s) => s.userRole)
+  if (userRole !== 'admin') {
+    return <Navigate to="/" replace />
+  }
+  return <>{children}</>
 }
 
 function App() {
@@ -31,7 +32,7 @@ function App() {
             <Route path="/discover" element={<LeadDiscoveryPage />} />
             <Route path="/pipeline" element={<PipelinePage />} />
             <Route path="/leads" element={<LeadsPage />} />
-            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/settings" element={<AdminGuard><SettingsPage /></AdminGuard>} />
           </Route>
         </Route>
       </Routes>
