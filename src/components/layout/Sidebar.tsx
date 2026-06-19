@@ -1,7 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  LayoutDashboard, Radar, Kanban, Users, Settings, ChevronLeft, ChevronRight, Zap,
+  LayoutDashboard, Radar, Kanban, Users, Settings, ChevronLeft, ChevronRight,
 } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
@@ -22,26 +22,34 @@ export function Sidebar() {
   return (
     <motion.aside
       animate={{ width: collapsed ? 64 : 232 }}
-      transition={{ duration: 0.2, ease: 'easeInOut' }}
+      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
       className="relative shrink-0 h-screen bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden z-20"
     >
       {/* Logo / Brand */}
-      <div className="h-14 flex items-center px-4 shrink-0 border-b border-zinc-100 dark:border-zinc-800">
+      <div className="h-14 flex items-center px-3.5 shrink-0 border-b border-zinc-100 dark:border-zinc-800">
         <div className="flex items-center gap-2.5 min-w-0">
-          <div className="shrink-0 h-7 w-7 rounded-md bg-indigo-600 flex items-center justify-center">
-            <Zap className="h-4 w-4 text-white" />
-          </div>
+          {/* Logo image */}
+          <img
+            src="/logo.png"
+            alt="ClientPilot AI"
+            className="h-8 w-8 rounded-md shrink-0 object-cover"
+          />
           <AnimatePresence>
             {!collapsed && (
-              <motion.span
-                initial={{ opacity: 0, x: -8 }}
+              <motion.div
+                initial={{ opacity: 0, x: -6 }}
                 animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -8 }}
+                exit={{ opacity: 0, x: -6 }}
                 transition={{ duration: 0.15 }}
-                className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 whitespace-nowrap"
+                className="min-w-0"
               >
-                ClientPilot<span className="text-indigo-600"> AI</span>
-              </motion.span>
+                <p className="text-[13px] font-bold text-zinc-900 dark:text-zinc-100 leading-none whitespace-nowrap">
+                  ClientPilot<span className="text-teal-600"> AI</span>
+                </p>
+                <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-none mt-0.5 whitespace-nowrap font-mono">
+                  Lead Acquisition
+                </p>
+              </motion.div>
             )}
           </AnimatePresence>
         </div>
@@ -78,8 +86,23 @@ export function Sidebar() {
         })}
       </nav>
 
+      {/* Agency badge */}
+      <AnimatePresence>
+        {!collapsed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="mx-2 mb-3 px-3 py-2.5 rounded-lg bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-900"
+          >
+            <p className="text-[10px] font-semibold text-teal-700 dark:text-teal-400 uppercase tracking-wider">Workspace</p>
+            <p className="text-xs font-medium text-teal-900 dark:text-teal-200 mt-0.5 truncate">Acme Software Agency</p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Collapse toggle */}
-      <div className="p-3 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="p-2.5 border-t border-zinc-100 dark:border-zinc-800">
         <button
           onClick={toggle}
           className="w-full flex items-center justify-center h-8 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
