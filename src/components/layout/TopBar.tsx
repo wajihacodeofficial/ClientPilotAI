@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router-dom'
 export function TopBar() {
   const darkMode = useAppStore((s) => s.darkMode)
   const toggleDarkMode = useAppStore((s) => s.toggleDarkMode)
+  const userRole = useAppStore((s) => s.userRole)
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -49,10 +50,14 @@ export function TopBar() {
 
         {/* Avatar */}
         <div className="flex items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-          <Avatar fallback="WZ" size="sm" />
+          <Avatar fallback={userRole === 'admin' ? 'AD' : 'US'} size="sm" />
           <div className="hidden sm:block">
-            <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 leading-none">Wajiha</p>
-            <p className="text-xs text-zinc-400 leading-none mt-0.5">Admin</p>
+            <p className="text-xs font-medium text-zinc-800 dark:text-zinc-200 leading-none">
+              {userRole === 'admin' ? 'Admin User' : 'Normal User'}
+            </p>
+            <p className="text-[10px] text-zinc-400 leading-none mt-0.5 uppercase tracking-wide">
+              {userRole || 'User'}
+            </p>
           </div>
         </div>
 

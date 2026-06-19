@@ -17,7 +17,13 @@ const navItems = [
 export function Sidebar() {
   const collapsed = useAppStore((s) => s.sidebarCollapsed)
   const toggle = useAppStore((s) => s.toggleSidebar)
+  const userRole = useAppStore((s) => s.userRole)
   const location = useLocation()
+
+  const filteredNavItems = navItems.filter(item => {
+    if (item.to === '/settings' && userRole !== 'admin') return false;
+    return true;
+  });
 
   return (
     <motion.aside
@@ -57,7 +63,7 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
-        {navItems.map(({ to, label, icon: Icon, end }) => {
+        {filteredNavItems.map(({ to, label, icon: Icon, end }) => {
           const isActive = end ? location.pathname === to : location.pathname.startsWith(to)
           return (
             <NavLink
