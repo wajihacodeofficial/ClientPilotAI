@@ -7,11 +7,11 @@ import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { to: '/', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/discover', label: 'Lead Discovery', icon: Radar, end: false },
-  { to: '/pipeline', label: 'Pipeline', icon: Kanban, end: false },
-  { to: '/leads', label: 'Leads', icon: Users, end: false },
-  { to: '/settings', label: 'Settings', icon: Settings, end: false },
+  { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
+  { to: '/app/discover', label: 'Lead Discovery', icon: Radar, end: false },
+  { to: '/app/pipeline', label: 'Pipeline', icon: Kanban, end: false },
+  { to: '/app/leads', label: 'Leads', icon: Users, end: false },
+  { to: '/app/settings', label: 'Settings', icon: Settings, end: false },
 ]
 
 export function Sidebar() {
@@ -21,7 +21,7 @@ export function Sidebar() {
   const location = useLocation()
 
   const filteredNavItems = navItems.filter(item => {
-    if (item.to === '/settings' && userRole !== 'admin') return false;
+    if (item.to === '/app/settings' && userRole !== 'admin') return false;
     return true;
   });
 

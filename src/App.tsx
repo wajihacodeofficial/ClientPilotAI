@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { AppShell } from '@/components/layout/AppShell'
 import { AuthGuard } from '@/components/layout/AuthGuard'
 import { DashboardPage } from '@/pages/DashboardPage'
@@ -6,14 +6,17 @@ import { LeadDiscoveryPage } from '@/pages/LeadDiscoveryPage'
 import { PipelinePage } from '@/pages/PipelinePage'
 import { LeadsPage } from '@/pages/LeadsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { LandingPage } from '@/pages/LandingPage'
+import { AboutPage } from '@/pages/AboutPage'
+import { LoginPage } from '@/pages/LoginPage'
+import { SignupPage } from '@/pages/SignupPage'
 import { useAppStore } from '@/store/useAppStore'
-import { Navigate } from 'react-router-dom'
 
 // Role Guard for Admin Panel
 function AdminGuard({ children }: { children: React.ReactNode }) {
   const userRole = useAppStore((s) => s.userRole)
   if (userRole !== 'admin') {
-    return <Navigate to="/" replace />
+    return <Navigate to="/app" replace />
   }
   return <>{children}</>
 }
@@ -22,19 +25,34 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public auth route */}
-        <Route path="/login" element={<LoginPage />} />
+        {/* ── Public marketing pages ─────────────────────────── */}
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/about" element={<AboutPage />} />
 
-        {/* Protected routes */}
+        {/* ── Auth pages ─────────────────────────────────────── */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+
+        {/* ── Protected app routes ───────────────────────────── */}
         <Route element={<AuthGuard />}>
           <Route element={<AppShell />}>
-            <Route path="/" element={<DashboardPage />} />
-            <Route path="/discover" element={<LeadDiscoveryPage />} />
-            <Route path="/pipeline" element={<PipelinePage />} />
-            <Route path="/leads" element={<LeadsPage />} />
-            <Route path="/settings" element={<AdminGuard><SettingsPage /></AdminGuard>} />
+            <Route path="/app" element={<DashboardPage />} />
+            <Route path="/app/discover" element={<LeadDiscoveryPage />} />
+            <Route path="/app/pipeline" element={<PipelinePage />} />
+            <Route path="/app/leads" element={<LeadsPage />} />
+            <Route
+              path="/app/settings"
+              element={
+                <AdminGuard>
+                  <SettingsPage />
+                </AdminGuard>
+              }
+            />
           </Route>
         </Route>
+
+        {/* Catch-all */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   )
