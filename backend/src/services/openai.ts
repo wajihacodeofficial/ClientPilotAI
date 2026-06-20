@@ -42,7 +42,7 @@ Score the lead based on their likely need for our services. Businesses without w
 `;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.5',
       messages: [
         { role: 'system', content: 'You are a lead scoring AI. Output JSON only matching the schema: {"overall_score": 0-100, "digital_presence_gap": 0-10, "category_fit": 0-10, "review_activity": 0-10, "market_density": 0-10, "competitor_presence": 0-10, "ai_reasoning": "..."}' },
         { role: 'user', content: prompt }
@@ -76,7 +76,7 @@ Why they are a good lead: ${scoreReasoning}
 The email should be friendly, not overly salesy, and highlight the specific value we could bring based on the reasoning provided. Return the result as a JSON object with 'subject' and 'body' fields.`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o',
+      model: 'gpt-5.5',
       messages: [
         { role: 'system', content: 'You are an expert sales copywriter. Output JSON only: {"subject": "...", "body": "..."}' },
         { role: 'user', content: prompt }
