@@ -424,16 +424,6 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
               {mode === 'signup' ? 'Unlock your predictive client acquisition portal' : 'Enter credentials to pilot your acquisition'}
             </p>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '20px' }}>
-            <button type="button" className="btn-social" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '48px', backgroundColor: '#ffffff', border: '2px solid #B7E4C7', borderRadius: '14px', color: '#0D2B1F', fontSize: '13px', fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--clay-bg-light)' }}>
-              Google
-            </button>
-            <button type="button" className="btn-social" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', height: '48px', backgroundColor: '#ffffff', border: '2px solid #B7E4C7', borderRadius: '14px', color: '#0D2B1F', fontSize: '13px', fontWeight: 800, cursor: 'pointer', boxShadow: 'var(--clay-bg-light)' }}>
-              Facebook
-            </button>
-          </div>
-
           <div style={{ display: 'flex', alignItems: 'center', textAlign: 'center', color: '#40916C', fontSize: '11px', fontWeight: 900, letterSpacing: '1.5px', marginBottom: '20px' }}>
             <div style={{ flex: 1, borderBottom: '2px solid #B7E4C7', marginRight: '12px' }}></div>
             OR

@@ -2,7 +2,11 @@ import { supabase } from './supabaseClient';
 import type { Lead, DashboardStats, PipelineStage, OutreachMessage, ProgressStep } from '../types';
 import { mockLeads, mockDashboardStats } from '../data/mockLeads';
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+let rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim();
+if (rawApiUrl.startsWith('http') && !rawApiUrl.endsWith('/api') && !rawApiUrl.endsWith('/api/')) {
+  rawApiUrl = rawApiUrl.replace(/\/$/, '') + '/api';
+}
+const API_URL = rawApiUrl;
 
 // ============================================================
 // Utility Helpers

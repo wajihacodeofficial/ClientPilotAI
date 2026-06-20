@@ -13,7 +13,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
 // Initialize client with fallback values to prevent build/init time crashes
 export const supabase = createClient(
   supabaseUrl || 'http://localhost:54321',
-  supabaseAnonKey || 'placeholder-anon-key'
+  (supabaseAnonKey || 'placeholder-anon-key').trim()
 );
 
 /**

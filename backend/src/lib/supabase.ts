@@ -22,8 +22,8 @@ if (missingVars.length > 0) {
 // Service role client bypasses RLS for backend admin operations.
 // Initialized with fallback values to prevent server boot failure.
 export const supabaseAdmin = createClient(
-  supabaseUrl || 'http://localhost:54321',
-  supabaseServiceKey || 'placeholder-service-key',
+  (supabaseUrl || 'http://localhost:54321').trim(),
+  (supabaseServiceKey || 'placeholder-service-key').trim(),
   {
     auth: {
       autoRefreshToken: false,
