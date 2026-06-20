@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   Users, Briefcase, BarChart2, Search, ShieldAlert,
   Calendar, Shield, User, RefreshCw, X,
@@ -72,10 +72,10 @@ const CAT_EMOJI: Record<string, string> = {
 }
 
 const STAGE_COLORS: Record<string, string> = {
-  discovery: 'text-indigo-600 bg-indigo-50 border-indigo-200 dark:text-indigo-400 dark:bg-indigo-950 dark:border-indigo-800',
-  qualified: 'text-teal-600 bg-teal-50 border-teal-200 dark:text-teal-400 dark:bg-teal-950 dark:border-teal-800',
-  contacted: 'text-amber-600 bg-amber-50 border-amber-200 dark:text-amber-400 dark:bg-amber-950 dark:border-amber-800',
-  client: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950 dark:border-emerald-800',
+  discovery: 'text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/20',
+  qualified: 'text-[#52B788] bg-[#52B788]/10 border-[#52B788]/20',
+  contacted: 'text-[#FFB347] bg-[#FFB347]/10 border-[#FFB347]/20',
+  client: 'text-[#2EC4B6] bg-[#2EC4B6]/10 border-[#2EC4B6]/20',
 }
 
 export function AdminDashboardPage() {
@@ -155,102 +155,150 @@ export function AdminDashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl">
+    <div className="p-6 space-y-6 max-w-7xl relative overflow-hidden min-h-screen text-[#e2f0e2]" style={{
+      background: 'linear-gradient(135deg, #0D2B1F 0%, #1A4A32 50%, #2D6A4F 100%)',
+      fontFamily: "'Nunito', sans-serif"
+    }}>
+      
+      {/* BACKGROUND DECORATIONS */}
+      <div className="absolute top-[15%] left-[8%] w-24 h-24 opacity-5 pointer-events-none animate-[bounce_5s_ease-in-out_infinite]">
+        <svg viewBox="0 0 100 100" fill="none">
+          <rect x="20" y="20" width="60" height="60" rx="20" fill="#FF6B9D" />
+        </svg>
+      </div>
+
+      <style>{`
+        .clay-card-dark {
+          background: rgba(240, 255, 244, 0.06);
+          border: 3px solid #2D6A4F;
+          border-radius: 28px;
+          box-shadow: inset 4px 4px 10px rgba(255, 255, 255, 0.05),
+                      inset -4px -4px 10px rgba(0, 0, 0, 0.4),
+                      0 15px 30px rgba(13, 43, 31, 0.45);
+          backdrop-filter: blur(12px);
+        }
+        .clay-input-dark {
+          background: rgba(13, 43, 31, 0.6) !important;
+          border: 2px solid #2D6A4F !important;
+          border-radius: 12px !important;
+          color: #ffffff !important;
+          box-shadow: inset 2px 2px 4px rgba(0, 0, 0, 0.2) !important;
+        }
+        .clay-input-dark::placeholder {
+          color: #74C69D !important;
+          opacity: 0.7;
+        }
+        .clay-btn {
+          background: linear-gradient(180deg, #40916C 0%, #2D6A4F 100%);
+          border: none;
+          box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.2), 
+                      0 4px 8px rgba(0, 0, 0, 0.2);
+          font-weight: 800;
+          color: white;
+          border-radius: 12px;
+          transition: all 0.2s ease;
+        }
+        .clay-btn:hover {
+          transform: translateY(-1px);
+          box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.3), 
+                      0 6px 12px rgba(13, 43, 31, 0.4);
+        }
+        .clay-table-row:hover {
+          background: rgba(240, 255, 244, 0.04) !important;
+        }
+      `}</style>
+
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
-            <Shield className="h-5 w-5 text-indigo-600" />
+          <h1 className="text-2xl font-black text-white tracking-tight uppercase flex items-center gap-2.5">
+            <Shield className="h-6 w-6 text-[#52B788]" />
             Admin Control Center
           </h1>
-          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+          <p className="text-sm text-[#74C69D] mt-0.5 font-bold">
             System administration, workspaces mapping, and tenant analytics
           </p>
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh} isLoading={loading} className="w-full sm:w-auto text-xs gap-1.5 h-8">
-          <RefreshCw className="h-3.5 w-3.5" />
+        <Button 
+          onClick={handleRefresh} 
+          isLoading={loading} 
+          className="clay-btn px-4 py-2 text-xs flex items-center gap-1.5 h-10 w-full sm:w-auto"
+        >
+          <RefreshCw className="h-4 w-4" />
           Refresh Stats
         </Button>
       </div>
 
       {/* Metrics Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
-          <Card className="p-5 hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Total Tenants</span>
-              <div className="h-8 w-8 rounded-lg bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600">
-                <Users className="h-4.5 w-4.5" />
-              </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} whileHover={{ y: -3 }} className="clay-card-dark p-6">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-xs text-emerald-300/80 font-bold uppercase tracking-wider">Total Tenants</span>
+            <div className="h-10 w-10 rounded-xl bg-[#8b5cf6]/20 border border-[#8b5cf6]/30 flex items-center justify-center text-purple-300">
+              <Users className="h-5 w-5" />
             </div>
-            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">{stats.totalUsers}</p>
-            <p className="text-xs text-zinc-400 mt-1 flex items-center gap-1">
-              <CheckCircle2 className="h-3 w-3 text-emerald-500" /> Active in Supabase Auth
-            </p>
-          </Card>
+          </div>
+          <p className="text-3xl font-extrabold text-white font-mono">{stats.totalUsers}</p>
+          <p className="text-xs text-emerald-400 mt-2 flex items-center gap-1 font-semibold">
+            <CheckCircle2 className="h-3.5 w-3.5 text-[#52B788]" /> Active in Supabase Auth
+          </p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05, duration: 0.2 }}>
-          <Card className="p-5 hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Active Workspaces</span>
-              <div className="h-8 w-8 rounded-lg bg-teal-50 dark:bg-teal-950 flex items-center justify-center text-teal-600">
-                <Briefcase className="h-4.5 w-4.5" />
-              </div>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} whileHover={{ y: -3 }} className="clay-card-dark p-6">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-xs text-emerald-300/80 font-bold uppercase tracking-wider">Active Workspaces</span>
+            <div className="h-10 w-10 rounded-xl bg-[#2EC4B6]/20 border border-[#2EC4B6]/30 flex items-center justify-center text-[#4EECD6]">
+              <Briefcase className="h-5 w-5" />
             </div>
-            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">{stats.totalWorkspaces}</p>
-            <p className="text-xs text-zinc-400 mt-1">Tenant sandboxed databases</p>
-          </Card>
+          </div>
+          <p className="text-3xl font-extrabold text-white font-mono">{stats.totalWorkspaces}</p>
+          <p className="text-xs text-emerald-300/60 mt-2 font-semibold">Tenant sandboxed databases</p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.2 }}>
-          <Card className="p-5 hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">Total Scored Leads</span>
-              <div className="h-8 w-8 rounded-lg bg-amber-50 dark:bg-amber-950 flex items-center justify-center text-amber-600">
-                <Zap className="h-4.5 w-4.5" />
-              </div>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }} whileHover={{ y: -3 }} className="clay-card-dark p-6">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-xs text-emerald-300/80 font-bold uppercase tracking-wider">Total Scored Leads</span>
+            <div className="h-10 w-10 rounded-xl bg-[#FFB347]/20 border border-[#FFB347]/30 flex items-center justify-center text-[#FFD166]">
+              <Zap className="h-5 w-5" />
             </div>
-            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">{stats.totalLeads}</p>
-            <p className="text-xs text-zinc-400 mt-1 flex items-center gap-1">
-              <TrendingUp className="h-3 w-3 text-emerald-500" /> Scanned via OSM + OpenAI
-            </p>
-          </Card>
+          </div>
+          <p className="text-3xl font-extrabold text-white font-mono">{stats.totalLeads}</p>
+          <p className="text-xs text-[#74C69D] mt-2 flex items-center gap-1 font-semibold">
+            <TrendingUp className="h-3.5 w-3.5 text-[#52B788]" /> Scanned via OSM + OpenAI
+          </p>
         </motion.div>
 
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.2 }}>
-          <Card className="p-5 hover:shadow-md transition-shadow">
-            <div className="flex justify-between items-center mb-3">
-              <span className="text-xs text-zinc-500 font-medium uppercase tracking-wider">AI Outreach Approved</span>
-              <div className="h-8 w-8 rounded-lg bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center text-emerald-600">
-                <BarChart2 className="h-4.5 w-4.5" />
-              </div>
+        <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} whileHover={{ y: -3 }} className="clay-card-dark p-6">
+          <div className="flex justify-between items-center mb-4">
+            <span className="text-xs text-emerald-300/80 font-bold uppercase tracking-wider">AI Outreach Approved</span>
+            <div className="h-10 w-10 rounded-xl bg-[#52B788]/20 border border-[#52B788]/30 flex items-center justify-center text-[#74C69D]">
+              <BarChart2 className="h-5 w-5" />
             </div>
-            <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 font-mono">{stats.totalOutreach}</p>
-            <p className="text-xs text-zinc-400 mt-1">Sent outreach campaigns</p>
-          </Card>
+          </div>
+          <p className="text-3xl font-extrabold text-white font-mono">{stats.totalOutreach}</p>
+          <p className="text-xs text-emerald-300/60 mt-2 font-semibold">Sent outreach campaigns</p>
         </motion.div>
       </div>
 
       {/* Main Content Area */}
-      <Card>
-        <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-2 border-b border-zinc-100 dark:border-zinc-800">
+      <div className="clay-card-dark p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-4 border-b border-[#2D6A4F]/30">
           <div>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="h-4 w-4 text-indigo-600" />
+            <h2 className="clay-card-title flex items-center gap-2">
+              <Users className="h-5 w-5 text-[#52B788]" />
               System Tenants ({filteredUsers.length})
-            </CardTitle>
+            </h2>
           </div>
 
           <div className="flex gap-3 flex-wrap items-center">
             {/* Search */}
-            <div className="relative w-full sm:w-60">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#74C69D]" />
               <Input
                 placeholder="Search user, email, workspace..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-8 h-8 text-xs"
+                className="clay-input-dark pl-9 h-10 text-xs"
               />
             </div>
 
@@ -258,39 +306,39 @@ export function AdminDashboardPage() {
             <Select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value as typeof roleFilter)}
-              className="h-8 text-xs w-32"
+              className="clay-input-dark h-10 text-xs w-36 px-2 cursor-pointer outline-none"
             >
-              <option value="all">All Roles</option>
-              <option value="admin">Admin</option>
-              <option value="user">User</option>
+              <option value="all" className="bg-[#0D2B1F]">All Roles</option>
+              <option value="admin" className="bg-[#0D2B1F]">Admin</option>
+              <option value="user" className="bg-[#0D2B1F]">User</option>
             </Select>
           </div>
-        </CardHeader>
+        </div>
 
-        <CardContent className="p-0">
+        <div className="p-0 mt-4">
           {loading ? (
-            <div className="p-6 space-y-3">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-12 w-full rounded-md" />
+            <div className="p-6 space-y-4">
+              {[...Array(5)].map((_, i) => (
+                <Skeleton key={i} className="h-14 w-full rounded-xl bg-emerald-950/40" />
               ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="border-b border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950/50">
-                  <tr className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">
-                    <th className="px-5 py-3.5 text-left">User</th>
-                    <th className="px-5 py-3.5 text-left">Role</th>
-                    <th className="px-5 py-3.5 text-left">Workspace</th>
-                    <th className="px-5 py-3.5 text-left">Workload</th>
-                    <th className="px-5 py-3.5 text-left">Joined</th>
-                    <th className="px-5 py-3.5 text-center">Actions</th>
+            <div className="overflow-x-auto rounded-2xl border-2 border-[#2D6A4F]/30 overflow-hidden">
+              <table className="w-full text-sm text-left">
+                <thead className="border-b-2 border-[#2D6A4F]/50 bg-[#0d2b1f]/50 text-emerald-300 font-bold uppercase tracking-wider text-[11px]">
+                  <tr>
+                    <th className="px-5 py-4">User</th>
+                    <th className="px-5 py-4">Role</th>
+                    <th className="px-5 py-4">Workspace</th>
+                    <th className="px-5 py-4">Workload</th>
+                    <th className="px-5 py-4">Joined</th>
+                    <th className="px-5 py-4 text-center">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                <tbody className="divide-y divide-[#2D6A4F]/20 text-[#e2f0e2]">
                   {filteredUsers.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="text-center py-12 text-sm text-zinc-400 dark:text-zinc-500">
+                      <td colSpan={6} className="text-center py-16 text-sm text-[#74C69D] italic">
                         No registered database tenants match your search filter.
                       </td>
                     </tr>
@@ -299,19 +347,19 @@ export function AdminDashboardPage() {
                     <tr
                       key={user.id}
                       onClick={() => setSelectedUserId(user.id)}
-                      className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 cursor-pointer transition-colors group"
+                      className="clay-table-row cursor-pointer transition-colors"
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-9 w-9 rounded-full bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-sm shrink-0 uppercase">
-                            {user.fullName.split(' ').map((n) => n[0]).join('').substring(0, 2)}
+                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#52B788] to-[#2D6A4F] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
+                            {user.fullName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0">
-                            <p className="font-semibold text-zinc-800 dark:text-zinc-200 text-sm flex items-center gap-1.5 leading-none">
+                            <p className="font-extrabold text-white text-sm flex items-center gap-1.5 leading-none">
                               {user.fullName}
-                              {user.role === 'admin' && <ShieldAlert className="h-3.5 w-3.5 text-amber-500" />}
+                              {user.role === 'admin' && <ShieldAlert className="h-4 w-4 text-[#FFB347]" />}
                             </p>
-                            <p className="text-xs text-zinc-400 mt-1 truncate max-w-50">
+                            <p className="text-xs text-[#74C69D] mt-1.5 truncate max-w-48 font-semibold">
                               {user.email}
                             </p>
                           </div>
@@ -319,7 +367,7 @@ export function AdminDashboardPage() {
                       </td>
 
                       <td className="px-5 py-4">
-                        <Badge variant={user.role === 'admin' ? 'warning' : 'secondary'} className="uppercase font-mono text-[9px] px-1.5 py-0">
+                        <Badge variant={user.role === 'admin' ? 'warning' : 'secondary'} className="uppercase font-mono text-[10px] px-2 py-0.5 border border-white/5 rounded-full">
                           {user.role}
                         </Badge>
                       </td>
@@ -327,38 +375,38 @@ export function AdminDashboardPage() {
                       <td className="px-5 py-4">
                         {user.workspace ? (
                           <div>
-                            <p className="text-xs font-medium text-zinc-700 dark:text-zinc-300 max-w-37.5 truncate leading-none">
+                            <p className="text-xs font-bold text-white max-w-[150px] truncate leading-none">
                               {user.workspace.name}
                             </p>
-                            <p className="text-[10px] text-zinc-400 mt-1 font-mono leading-none truncate max-w-37.5">
+                            <p className="text-[10px] text-[#74C69D]/80 mt-1.5 font-mono leading-none truncate max-w-[150px]">
                               {user.workspace.id}
                             </p>
                           </div>
                         ) : (
-                          <span className="text-xs text-zinc-400 italic">No workspace</span>
+                          <span className="text-xs text-[#74C69D] italic font-semibold">No workspace</span>
                         )}
                       </td>
 
                       <td className="px-5 py-4">
                         {user.workspace ? (
-                          <div className="flex items-center gap-3 text-xs">
+                          <div className="flex items-center gap-3 text-xs font-semibold">
                             <div>
-                              <span className="font-bold text-zinc-700 dark:text-zinc-300">{user.workspace.totalLeads}</span>
-                              <span className="text-zinc-400 ml-1">leads</span>
+                              <span className="font-extrabold text-white">{user.workspace.totalLeads}</span>
+                              <span className="text-[#74C69D] ml-1">leads</span>
                             </div>
-                            <Separator orientation="vertical" className="h-3 bg-zinc-200 dark:bg-zinc-700" />
+                            <Separator orientation="vertical" className="h-3.5 bg-[#2D6A4F]/40" />
                             <div>
-                              <span className="font-bold text-zinc-700 dark:text-zinc-300">{user.workspace.totalOutreachSent}</span>
-                              <span className="text-zinc-400 ml-1">sent</span>
+                              <span className="font-extrabold text-white">{user.workspace.totalOutreachSent}</span>
+                              <span className="text-[#74C69D] ml-1">sent</span>
                             </div>
                           </div>
                         ) : (
-                          <span className="text-xs text-zinc-400">—</span>
+                          <span className="text-xs text-[#74C69D]">—</span>
                         )}
                       </td>
 
                       <td className="px-5 py-4">
-                        <span className="text-xs text-zinc-400 font-mono">{formatDate(user.createdAt)}</span>
+                        <span className="text-xs text-[#74C69D] font-mono font-bold">{formatDate(user.createdAt)}</span>
                       </td>
 
                       <td className="px-5 py-4 text-center" onClick={(e) => e.stopPropagation()}>
@@ -368,17 +416,17 @@ export function AdminDashboardPage() {
                             size="sm"
                             disabled={roleChanging === user.id}
                             onClick={() => handleToggleRole(user)}
-                            className="h-8 px-2.5 text-xs text-zinc-500 hover:text-indigo-600 dark:text-zinc-400 dark:hover:text-indigo-400 gap-1"
+                            className="h-8 px-2.5 text-xs text-[#74C69D] hover:text-white dark:hover:text-white gap-1 bg-black/10 hover:bg-black/20 border border-[#2D6A4F]/30 rounded-lg"
                             title="Toggle role between Admin and User"
                           >
                             {user.role === 'admin' ? (
-                              <ToggleRight className="h-5 w-5 text-indigo-600" />
+                              <ToggleRight className="h-5 w-5 text-[#52B788]" />
                             ) : (
                               <ToggleLeft className="h-5 w-5 text-zinc-400" />
                             )}
-                            <span className="text-[11px]">Role</span>
+                            <span className="text-[10px] font-bold">Role</span>
                           </Button>
-                          <ChevronRight className="h-4 w-4 text-zinc-300 dark:text-zinc-600 group-hover:translate-x-0.5 transition-transform" />
+                          <ChevronRight className="h-4 w-4 text-[#74C69D] group-hover:translate-x-0.5 transition-transform" />
                         </div>
                       </td>
                     </tr>
@@ -387,67 +435,67 @@ export function AdminDashboardPage() {
               </table>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* User Workspace Details Panel Slideout */}
       <Sheet open={!!selectedUserId} onClose={() => setSelectedUserId(null)} width="w-[600px]">
         {!selectedUser ? (
-          <div className="p-6 space-y-4">
+          <div className="p-6 space-y-4 bg-[#0d2b1f] text-[#e2f0e2] h-full border-l border-[#2D6A4F]">
             <div className="flex justify-between items-center">
-              <Skeleton className="h-6 w-32" />
-              <Skeleton className="h-8 w-8 rounded" />
+              <Skeleton className="h-6 w-32 bg-emerald-950/40" />
+              <Skeleton className="h-8 w-8 rounded bg-emerald-950/40" />
             </div>
-            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full rounded" />)}
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full rounded bg-emerald-950/40" />)}
           </div>
         ) : (
-          <div className="h-full flex flex-col bg-white dark:bg-zinc-900">
+          <div className="h-full flex flex-col bg-[#0D2B1F] text-[#e2f0e2] border-l border-[#2D6A4F] font-sans">
             {/* Slide Header */}
-            <div className="sticky top-0 z-10 bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 px-5 py-4 flex items-center justify-between">
+            <div className="sticky top-0 z-10 bg-[#0d2b1f] border-b border-[#2D6A4F]/40 px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 rounded-lg bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 flex items-center justify-center font-bold text-sm shrink-0">
+                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#52B788] to-[#2D6A4F] text-white flex items-center justify-center font-bold text-sm shrink-0">
                   <User className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
-                  <h2 className="text-base font-bold text-zinc-900 dark:text-zinc-100 truncate">{selectedUser.fullName}</h2>
-                  <p className="text-xs text-zinc-400 mt-0.5">{selectedUser.email}</p>
+                  <h2 className="text-base font-extrabold text-white truncate">{selectedUser.fullName}</h2>
+                  <p className="text-xs text-[#74C69D] mt-0.5 font-semibold">{selectedUser.email}</p>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedUserId(null)}
-                className="h-8 w-8 flex items-center justify-center rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 transition-colors shrink-0 ml-2"
+                className="h-8 w-8 flex items-center justify-center rounded-lg hover:bg-black/20 text-[#74C69D] hover:text-white transition-colors shrink-0 ml-2"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
             {/* Slide Content */}
             <div className="p-5 flex-1 overflow-y-auto space-y-5">
               {/* User Overview Profile */}
-              <div className="bg-zinc-50 dark:bg-zinc-950/40 rounded-xl p-4 border border-zinc-100 dark:border-zinc-800/80 space-y-3">
-                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider leading-none">Metadata</h3>
+              <div className="bg-[#1A4A32]/40 rounded-2xl p-4 border-2 border-[#2D6A4F]/40 space-y-3 shadow-md">
+                <h3 className="text-xs font-bold text-[#52B788] uppercase tracking-wider leading-none">Metadata</h3>
                 <div className="grid grid-cols-2 gap-y-3 gap-x-4 text-xs">
                   <div>
-                    <span className="text-zinc-400 block mb-0.5">Database User ID</span>
-                    <span className="font-mono text-zinc-700 dark:text-zinc-300 truncate block">{selectedUser.id}</span>
+                    <span className="text-[#74C69D] block mb-0.5 font-semibold">Database User ID</span>
+                    <span className="font-mono text-white truncate block">{selectedUser.id}</span>
                   </div>
                   <div>
-                    <span className="text-zinc-400 block mb-0.5">Joined System</span>
-                    <span className="text-zinc-700 dark:text-zinc-300 font-mono flex items-center gap-1">
-                      <Calendar className="h-3 w-3" /> {formatDate(selectedUser.createdAt)}
+                    <span className="text-[#74C69D] block mb-0.5 font-semibold">Joined System</span>
+                    <span className="text-white font-mono flex items-center gap-1 font-bold">
+                      <Calendar className="h-3.5 w-3.5" /> {formatDate(selectedUser.createdAt)}
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-400 block mb-0.5">Authorization Role</span>
-                    <span className="text-zinc-700 dark:text-zinc-300">
-                      <Badge variant={selectedUser.role === 'admin' ? 'warning' : 'secondary'} className="uppercase font-mono text-[9px] px-1 py-0 mt-0.5">
+                    <span className="text-[#74C69D] block mb-0.5 font-semibold">Authorization Role</span>
+                    <span className="text-white">
+                      <Badge variant={selectedUser.role === 'admin' ? 'warning' : 'secondary'} className="uppercase font-mono text-[9px] px-2 py-0.5 rounded-full mt-0.5">
                         {selectedUser.role}
                       </Badge>
                     </span>
                   </div>
                   <div>
-                    <span className="text-zinc-400 block mb-0.5">Last Logged In</span>
-                    <span className="text-zinc-700 dark:text-zinc-300 font-mono block">
+                    <span className="text-[#74C69D] block mb-0.5 font-semibold">Last Logged In</span>
+                    <span className="text-white font-mono block font-bold">
                       {selectedUser.lastSignInAt ? formatDate(selectedUser.lastSignInAt) : 'Never logged in'}
                     </span>
                   </div>
@@ -456,76 +504,76 @@ export function AdminDashboardPage() {
 
               {/* Workspace / Project details */}
               <div className="space-y-3">
-                <h3 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider leading-none flex items-center gap-1.5">
-                  <Briefcase className="h-3.5 w-3.5 text-indigo-500" />
+                <h3 className="text-xs font-bold text-[#74C69D] uppercase tracking-wider leading-none flex items-center gap-1.5">
+                  <Briefcase className="h-4 w-4 text-[#52B788]" />
                   Assigned Project Workspace
                 </h3>
                 {selectedUser.workspace ? (
-                  <div className="border border-zinc-200 dark:border-zinc-800 rounded-xl p-4 space-y-4">
+                  <div className="border-2 border-[#2D6A4F]/40 rounded-2xl p-4 space-y-4 bg-[#1A4A32]/20">
                     <div className="flex justify-between items-start">
                       <div>
-                        <h4 className="text-sm font-bold text-zinc-800 dark:text-zinc-200">{selectedUser.workspace.name}</h4>
-                        <p className="text-[10px] text-zinc-400 mt-1 font-mono">Workspace ID: {selectedUser.workspace.id}</p>
+                        <h4 className="text-sm font-black text-white">{selectedUser.workspace.name}</h4>
+                        <p className="text-[10px] text-[#74C69D] mt-1 font-mono">Workspace ID: {selectedUser.workspace.id}</p>
                       </div>
-                      <Badge variant="success" className="text-[9px] px-1.5 uppercase font-mono">Operational</Badge>
+                      <Badge variant="success" className="text-[9px] px-2 py-0.5 uppercase font-mono rounded-full">Operational</Badge>
                     </div>
 
                     {/* Leads by stage overview */}
                     <div className="grid grid-cols-4 gap-2 text-center">
-                      <div className="bg-indigo-50/50 dark:bg-indigo-950/20 rounded-lg p-2 border border-indigo-100/50 dark:border-indigo-900/10">
-                        <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block">Discovery</span>
-                        <span className="text-base font-bold font-mono text-indigo-600">{selectedUser.workspace.leadsByStage.discovery}</span>
+                      <div className="bg-[#8b5cf6]/10 rounded-xl p-2 border border-[#8b5cf6]/20">
+                        <span className="text-[10px] text-[#74C69D] block font-semibold">Discovery</span>
+                        <span className="text-base font-extrabold font-mono text-purple-300">{selectedUser.workspace.leadsByStage.discovery}</span>
                       </div>
-                      <div className="bg-teal-50/50 dark:bg-teal-950/20 rounded-lg p-2 border border-teal-100/50 dark:border-teal-900/10">
-                        <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block">Qualified</span>
-                        <span className="text-base font-bold font-mono text-teal-600">{selectedUser.workspace.leadsByStage.qualified}</span>
+                      <div className="bg-[#52B788]/10 rounded-xl p-2 border border-[#52B788]/20">
+                        <span className="text-[10px] text-[#74C69D] block font-semibold">Qualified</span>
+                        <span className="text-base font-extrabold font-mono text-[#52B788]">{selectedUser.workspace.leadsByStage.qualified}</span>
                       </div>
-                      <div className="bg-amber-50/50 dark:bg-amber-950/20 rounded-lg p-2 border border-amber-100/50 dark:border-amber-900/10">
-                        <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block">Contacted</span>
-                        <span className="text-base font-bold font-mono text-amber-600">{selectedUser.workspace.leadsByStage.contacted}</span>
+                      <div className="bg-[#FFB347]/10 rounded-xl p-2 border border-[#FFB347]/20">
+                        <span className="text-[10px] text-[#74C69D] block font-semibold">Contacted</span>
+                        <span className="text-base font-extrabold font-mono text-[#FFB347]">{selectedUser.workspace.leadsByStage.contacted}</span>
                       </div>
-                      <div className="bg-emerald-50/50 dark:bg-emerald-950/20 rounded-lg p-2 border border-emerald-100/50 dark:border-emerald-900/10">
-                        <span className="text-[10px] text-zinc-500 dark:text-zinc-400 block">Clients</span>
-                        <span className="text-base font-bold font-mono text-emerald-600">{selectedUser.workspace.leadsByStage.client}</span>
+                      <div className="bg-[#2EC4B6]/10 rounded-xl p-2 border border-[#2EC4B6]/20">
+                        <span className="text-[10px] text-[#74C69D] block font-semibold">Clients</span>
+                        <span className="text-base font-extrabold font-mono text-[#2EC4B6]">{selectedUser.workspace.leadsByStage.client}</span>
                       </div>
                     </div>
 
                     {/* Leads detailed table */}
                     <div className="space-y-2">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Leads List</span>
-                        <span className="text-[10px] text-zinc-400 font-mono">{selectedUser.workspace.leads.length} total leads</span>
+                        <span className="text-xs font-bold text-white">Leads List</span>
+                        <span className="text-[10px] text-[#74C69D] font-mono font-bold">{selectedUser.workspace.leads.length} total leads</span>
                       </div>
 
-                      <div className="border border-zinc-100 dark:border-zinc-800 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
+                      <div className="border-2 border-[#2D6A4F]/30 rounded-xl overflow-hidden max-h-60 overflow-y-auto bg-black/10">
                         <table className="w-full text-xs text-left">
-                          <thead className="bg-zinc-50 dark:bg-zinc-950/30 border-b border-zinc-100 dark:border-zinc-800 text-zinc-500 font-semibold uppercase font-mono">
+                          <thead className="bg-[#0D2B1F] border-b border-[#2D6A4F]/30 text-emerald-300 font-bold uppercase font-mono text-[9px] tracking-wider">
                             <tr>
-                              <th className="px-3 py-2">Business</th>
-                              <th className="px-3 py-2">Score</th>
-                              <th className="px-3 py-2 text-right">Stage</th>
+                              <th className="px-3 py-2.5">Business</th>
+                              <th className="px-3 py-2.5">Score</th>
+                              <th className="px-3 py-2.5 text-right">Stage</th>
                             </tr>
                           </thead>
-                          <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+                          <tbody className="divide-y divide-[#2D6A4F]/20 text-[#e2f0e2]">
                             {selectedUser.workspace.leads.length === 0 && (
                               <tr>
-                                <td colSpan={3} className="text-center py-6 text-zinc-400 italic">No leads scanned yet</td>
+                                <td colSpan={3} className="text-center py-6 text-[#74C69D] italic font-semibold">No leads scanned yet</td>
                               </tr>
                             )}
                             {selectedUser.workspace.leads.map((lead) => (
-                              <tr key={lead.id} className="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/20">
+                              <tr key={lead.id} className="hover:bg-white/5">
                                 <td className="px-3 py-2.5">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-sm shrink-0">{CAT_EMOJI[lead.category] ?? '🏪'}</span>
+                                    <span className="text-base shrink-0">{CAT_EMOJI[lead.category] ?? '🏪'}</span>
                                     <div className="min-w-0">
-                                      <p className="font-medium text-zinc-800 dark:text-zinc-200 truncate max-w-45">{lead.name}</p>
-                                      <p className="text-[10px] text-zinc-400 leading-none truncate max-w-45">{lead.city}</p>
+                                      <p className="font-bold text-white truncate max-w-[160px]">{lead.name}</p>
+                                      <p className="text-[9px] text-[#74C69D] leading-none truncate max-w-[160px] font-semibold">{lead.city}</p>
                                     </div>
                                   </div>
                                 </td>
                                 <td className="px-3 py-2.5">
                                   <span className={cn(
-                                    'font-bold font-mono px-1 rounded',
+                                    'font-extrabold font-mono px-1.5 py-0.5 rounded text-[10px]',
                                     getScoreColor(lead.score), getScoreBg(lead.score)
                                   )}>
                                     {lead.score}
@@ -533,7 +581,7 @@ export function AdminDashboardPage() {
                                 </td>
                                 <td className="px-3 py-2.5 text-right">
                                   <Badge variant="outline" className={cn(
-                                    'text-[9px] uppercase font-semibold border-none px-1 h-5',
+                                    'text-[9px] uppercase font-bold border-none px-1.5 h-5 rounded-full',
                                     STAGE_COLORS[lead.pipelineStage]
                                   )}>
                                     {getPipelineLabel(lead.pipelineStage)}
@@ -547,8 +595,8 @@ export function AdminDashboardPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="border border-dashed border-zinc-200 dark:border-zinc-800 rounded-xl p-8 text-center">
-                    <p className="text-xs text-zinc-400 italic">This user does not have an active database workspace.</p>
+                  <div className="border-2 border-dashed border-[#2D6A4F]/40 rounded-2xl p-8 text-center bg-black/5">
+                    <p className="text-xs text-[#74C69D] italic font-semibold">This user does not have an active database workspace.</p>
                   </div>
                 )}
               </div>
