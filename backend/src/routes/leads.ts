@@ -14,7 +14,7 @@ const DiscoverSchema = z.object({
 
 // GET /api/leads
 router.get('/', async (req, res) => {
-  const user = req.user;
+  const user = req.user!;
   
   try {
     // Get user's workspace_id from profiles
@@ -48,7 +48,7 @@ router.get('/', async (req, res) => {
 router.post('/discover', async (req, res) => {
   try {
     const { location, categories, radiusMeters } = DiscoverSchema.parse(req.body);
-    const user = req.user;
+    const user = req.user!;
 
     const { data: profile } = await supabaseAdmin
       .from('profiles')
@@ -181,7 +181,7 @@ router.patch('/:id/stage', async (req, res) => {
   try {
     const { id } = req.params;
     const { stage } = req.body; // e.g. 'contacted'
-    const user = req.user;
+    const user = req.user!;
 
     const { data: profile } = await supabaseAdmin.from('profiles').select('workspace_id').eq('id', user.sub).single();
     if (!profile?.workspace_id) {

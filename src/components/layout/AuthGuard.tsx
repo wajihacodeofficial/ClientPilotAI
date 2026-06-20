@@ -15,24 +15,60 @@ export function AuthGuard() {
   const setUserEmail = useAppStore((s) => s.setUserEmail)
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
-      if (session?.user) {
-        setUserEmail(session.user.email ?? null)
-        setUserRole(session.user.email?.includes('admin') ? 'admin' : 'user')
+    let active = true;
+
+    const initAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession()
+        if (!active) return
+        setSession(session)
+        if (session?.user) {
+          setUserEmail(session.user.email ?? null)
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single()
+          
+          if (!active) return
+          if (data && !error) {
+            setUserRole(data.role as 'admin' | 'user')
+          } else {
+            setUserRole('user')
+          }
+        }
+      } catch {
+        if (active) setUserRole('user')
+      } finally {
+        if (active) setLoading(false)
       }
-      setLoading(false)
-    })
+    }
+
+    initAuth()
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (!active) return
       setSession(session)
       if (session?.user) {
         setUserEmail(session.user.email ?? null)
-        setUserRole(session.user.email?.includes('admin') ? 'admin' : 'user')
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single()
+          if (!active) return
+          if (data && !error) {
+            setUserRole(data.role as 'admin' | 'user')
+          } else {
+            setUserRole('user')
+          }
+        } catch {
+          if (active) setUserRole('user')
+        }
       } else {
-        // Only clear if we are not in demo bypass mode
         const currentRole = useAppStore.getState().userRole
         if (currentRole !== 'admin' && currentRole !== 'user') {
           setUserEmail(null)
@@ -41,7 +77,10 @@ export function AuthGuard() {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      active = false
+      subscription.unsubscribe()
+    }
   }, [setUserRole, setUserEmail])
 
   // If a demo role is set, grant access immediately without waiting

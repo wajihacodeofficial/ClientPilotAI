@@ -39,10 +39,28 @@ This repository contains the full-stack code for Client Pilot AI.
    ```env
    VITE_SUPABASE_URL=your_supabase_project_url
    VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+   # Optional locally. If omitted, Vite proxies /api to http://localhost:3001.
    VITE_API_URL=http://localhost:3001/api
    ```
 2. Run `npm install` (if you haven't already).
 3. Start the Vite dev server: `npm run dev`.
+
+## Deploying on Vercel
+
+This repo includes a standard `vercel.json` for deploying the Vite frontend and the Express backend together. Do not use the deprecated/unsupported `experimentalServices` config.
+
+Required Vercel environment variables:
+
+```env
+VITE_SUPABASE_URL=your_supabase_project_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+SUPABASE_JWT_SECRET=your_supabase_jwt_secret
+OPENAI_API_KEY=your_openai_api_key
+```
+
+Leave `VITE_API_URL` empty on Vercel unless you are deploying the backend separately. The frontend defaults to the same-domain `/api` route.
 
 ## Running the app
 1. Navigate to `http://localhost:5173`.

@@ -7,11 +7,12 @@ import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true },
-  { to: '/app/discover', label: 'Lead Discovery', icon: Radar, end: false },
-  { to: '/app/pipeline', label: 'Pipeline', icon: Kanban, end: false },
-  { to: '/app/leads', label: 'Leads', icon: Users, end: false },
-  { to: '/app/settings', label: 'Settings', icon: Settings, end: false },
+  { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true, role: 'user' },
+  { to: '/app/discover', label: 'Lead Discovery', icon: Radar, end: false, role: 'user' },
+  { to: '/app/pipeline', label: 'Pipeline', icon: Kanban, end: false, role: 'user' },
+  { to: '/app/leads', label: 'Leads', icon: Users, end: false, role: 'user' },
+  { to: '/app/admin', label: 'Admin Panel', icon: LayoutDashboard, end: false, role: 'admin' },
+  { to: '/app/settings', label: 'Settings', icon: Settings, end: false, role: 'admin' },
 ]
 
 export function Sidebar() {
@@ -21,7 +22,8 @@ export function Sidebar() {
   const location = useLocation()
 
   const filteredNavItems = navItems.filter(item => {
-    if (item.to === '/app/settings' && userRole !== 'admin') return false;
+    if (item.role === 'admin' && userRole !== 'admin') return false;
+    if (item.role === 'user' && userRole !== 'user') return false;
     return true;
   });
 

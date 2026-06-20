@@ -1,0 +1,9 @@
+[build]
+builder = "npm-run"
+buildCommand = "npm run build"
+startCommand = "npm start"
+
+[build.environment]
+NODE_ENV = "production"
+PORT = "3001"
+TS_NODE_TRANSPILE_ONLY = "true"

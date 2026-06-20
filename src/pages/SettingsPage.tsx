@@ -1,14 +1,49 @@
+import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardContent, Button, Badge } from '@/components/ui'
 import { Users, Shield, ShieldAlert, Mail } from 'lucide-react'
+import { supabase } from '@/lib/supabaseClient'
 
-// Mock workspace users
-const WORKSPACE_USERS = [
-  { id: '1', name: 'Admin User', email: 'admin@demo.com', role: 'admin', lastActive: 'Just now' },
-  { id: '2', name: 'Normal User', email: 'user@demo.com', role: 'user', lastActive: '2 hours ago' },
-  { id: '3', name: 'Sarah Connor', email: 'sarah@demo.com', role: 'user', lastActive: '1 day ago' },
-]
+interface WorkspaceUser {
+  id: string
+  name: string
+  email: string
+  role: string
+  lastActive: string
+}
 
 export function SettingsPage() {
+  const [users, setUsers] = useState<WorkspaceUser[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchWorkspaceUsers = async () => {
+      try {
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, role')
+        
+        if (error) throw error
+        
+        if (profiles) {
+          const mapped = profiles.map(p => ({
+            id: p.id,
+            name: p.full_name || 'Unnamed Tenant',
+            email: p.role === 'admin' ? 'admin@clientpilotai.com' : 'user@clientpilotai.com', // Decoupled email fallback for security
+            role: p.role || 'user',
+            lastActive: 'Just now'
+          }))
+          setUsers(mapped)
+        }
+      } catch (err) {
+        console.error('Failed to load workspace users:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchWorkspaceUsers()
+  }, [])
+
   return (
     <div className="p-6 max-w-5xl space-y-6">
       {/* Header */}
@@ -34,8 +69,14 @@ export function SettingsPage() {
               <Button size="sm" className="bg-teal-600 hover:bg-teal-700 text-white">Invite User</Button>
             </CardHeader>
             <CardContent>
-              <div className="rounded-md border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-800 mt-4">
-                {WORKSPACE_USERS.map((user) => (
+              {loading ? (
+                <div className="space-y-2 mt-4">
+                  <div className="h-10 w-full bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+                  <div className="h-10 w-full bg-zinc-100 dark:bg-zinc-800 rounded animate-pulse" />
+                </div>
+              ) : (
+                <div className="rounded-md border border-zinc-200 dark:border-zinc-800 divide-y divide-zinc-200 dark:divide-zinc-800 mt-4">
+                  {users.map((user) => (
                   <div key={user.id} className="flex items-center justify-between p-4">
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center shrink-0 text-zinc-500 font-medium">
@@ -63,6 +104,7 @@ export function SettingsPage() {
                   </div>
                 ))}
               </div>
+              )}
             </CardContent>
           </Card>
         </div>

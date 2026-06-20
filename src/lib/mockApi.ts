@@ -1,9 +1,8 @@
 import { supabase } from './supabaseClient';
 import type { Lead, DashboardStats, PipelineStage, OutreachMessage, ProgressStep } from '../types';
 import { mockLeads, mockDashboardStats } from '../data/mockLeads';
-import { useAppStore } from '../store/useAppStore';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 // ============================================================
 // Utility Helpers
@@ -16,12 +15,11 @@ function jitter(base: number, variance = 200): number {
   return base + Math.random() * variance - variance / 2;
 }
 
-function isDemoMode(session: any): boolean {
-  const role = useAppStore.getState().userRole;
+function isDemoMode(session: unknown): boolean {
   const isEnvConfigured =
     !!import.meta.env.VITE_SUPABASE_URL &&
     import.meta.env.VITE_SUPABASE_URL !== 'https://your-project-id.supabase.co';
-  return !session || !isEnvConfigured || role === 'admin' || role === 'user';
+  return !session || !isEnvConfigured;
 }
 
 async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
@@ -60,7 +58,7 @@ export async function discoverLeads(
   try {
     const { data } = await supabase.auth.getSession();
     session = data.session;
-  } catch (e) {
+  } catch {
     // Ignore session errors
   }
 
@@ -148,7 +146,7 @@ export async function getAllLeads(): Promise<Lead[]> {
   try {
     const { data } = await supabase.auth.getSession();
     session = data.session;
-  } catch (e) {
+  } catch {
     // Ignore session errors
   }
 
@@ -174,7 +172,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     const { data } = await supabase.auth.getSession();
     session = data.session;
-  } catch (e) {
+  } catch {
     // Ignore session errors
   }
 
@@ -200,7 +198,7 @@ export async function generateOutreach(leadId: string): Promise<OutreachMessage>
   try {
     const { data } = await supabase.auth.getSession();
     session = data.session;
-  } catch (e) {
+  } catch {
     // Ignore session errors
   }
 
@@ -257,7 +255,7 @@ export async function sendOutreach(leadId: string, message: OutreachMessage): Pr
   try {
     const { data } = await supabase.auth.getSession();
     session = data.session;
-  } catch (e) {
+  } catch {
     // Ignore session errors
   }
 
@@ -282,7 +280,7 @@ export async function saveDraft(leadId: string, message: OutreachMessage): Promi
   try {
     const { data } = await supabase.auth.getSession();
     session = data.session;
-  } catch (e) {
+  } catch {
     // Ignore session errors
   }
 
@@ -300,7 +298,7 @@ export async function updateLeadStage(leadId: string, stage: PipelineStage): Pro
   try {
     const { data } = await supabase.auth.getSession();
     session = data.session;
-  } catch (e) {
+  } catch {
     // Ignore session errors
   }
 
@@ -317,4 +315,18 @@ export async function updateLeadStage(leadId: string, stage: PipelineStage): Pro
   } catch (err) {
     console.warn('updateLeadStage API failed:', err);
   }
+}
+
+// ============================================================
+// Admin Dashboard APIs
+// ============================================================
+export async function getAdminUsers(): Promise<unknown[]> {
+  return fetchWithAuth('/admin/users');
+}
+
+export async function updateUserRole(userId: string, role: 'admin' | 'user'): Promise<unknown> {
+  return fetchWithAuth(`/admin/users/${userId}/role`, {
+    method: 'PATCH',
+    body: JSON.stringify({ role }),
+  });
 }

@@ -21,27 +21,77 @@ export function LoginPage() {
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       })
       if (error) throw error
-      // Set role based on email for demo purposes
-      setUserRole(email.includes('admin') ? 'admin' : 'user')
-      setUserEmail(email)
-      navigate('/app')
-    } catch (err: any) {
-      setError(err.message)
+      
+      if (authData.user) {
+        setUserEmail(authData.user.email ?? null)
+        
+        // Fetch role from profile table
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', authData.user.id)
+          .single()
+          
+        const role = (!profileError && profile) ? (profile.role as 'admin' | 'user') : 'user'
+        setUserRole(role)
+        
+        if (role === 'admin') {
+          navigate('/app/admin')
+        } else {
+          navigate('/app')
+        }
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }
   }
 
-  const handleDemoLogin = (role: 'admin' | 'user') => {
-    // For demo purposes, we bypass real auth and just set the role
-    setUserRole(role)
-    setUserEmail(role === 'admin' ? 'admin@clientpilot.ai' : 'user@clientpilot.ai')
-    navigate('/app')
+  const handleDemoLogin = async (role: 'admin' | 'user') => {
+    setLoading(true)
+    setError(null)
+    const demoEmail = role === 'admin' ? 'admin@clientpilotai.com' : 'user@clientpilotai.com'
+    const demoPassword = role === 'admin' ? 'Client@123' : 'User@123'
+    
+    setEmail(demoEmail)
+    setPassword(demoPassword)
+    
+    try {
+      const { data: authData, error } = await supabase.auth.signInWithPassword({
+        email: demoEmail,
+        password: demoPassword,
+      })
+      if (error) throw error
+      
+      if (authData.user) {
+        setUserEmail(authData.user.email ?? null)
+        
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', authData.user.id)
+          .single()
+          
+        const userRole = (!profileError && profile) ? (profile.role as 'admin' | 'user') : 'user'
+        setUserRole(userRole)
+        
+        if (userRole === 'admin') {
+          navigate('/app/admin')
+        } else {
+          navigate('/app')
+        }
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : String(err))
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (

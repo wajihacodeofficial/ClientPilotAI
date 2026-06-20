@@ -6,7 +6,7 @@ const router = Router();
 // GET /api/analytics/overview
 router.get('/overview', async (req, res) => {
   try {
-    const user = req.user;
+    const user = req.user!;
 
     const { data: profile } = await supabaseAdmin
       .from('profiles')

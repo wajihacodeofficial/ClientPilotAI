@@ -6,6 +6,7 @@ import { LeadDiscoveryPage } from '@/pages/LeadDiscoveryPage'
 import { PipelinePage } from '@/pages/PipelinePage'
 import { LeadsPage } from '@/pages/LeadsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
+import { AdminDashboardPage } from '@/pages/AdminDashboardPage'
 import { LandingPage } from '@/pages/LandingPage'
 import { AboutPage } from '@/pages/AboutPage'
 import { LoginPage } from '@/pages/LoginPage'
@@ -40,6 +41,14 @@ function App() {
             <Route path="/app/discover" element={<LeadDiscoveryPage />} />
             <Route path="/app/pipeline" element={<PipelinePage />} />
             <Route path="/app/leads" element={<LeadsPage />} />
+            <Route
+              path="/app/admin"
+              element={
+                <AdminGuard>
+                  <AdminDashboardPage />
+                </AdminGuard>
+              }
+            />
             <Route
               path="/app/settings"
               element={
