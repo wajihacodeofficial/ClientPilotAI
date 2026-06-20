@@ -461,19 +461,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
       {/* RIGHT PANEL */}
       <div className="right-panel-responsive" style={{ width: '45%', height: '100%', backgroundColor: '#1A4A32', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '40px', position: 'relative' }}>
         
-        {/* Pointer Hand (ELEMENT 8) */}
-        <div className="pointer-hand-responsive svg-hand" style={{ position: 'absolute', left: '-60px', top: '50%', transform: 'translateY(-50%)', width: '120px', height: '120px', zIndex: 100, pointerEvents: 'none' }}>
-          <svg width="120" height="120" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g filter="drop-shadow(-5px 10px 10px rgba(0,0,0,0.3))">
-              <rect x="40" y="55" width="110" height="36" rx="18" fill="#C8956C" />
-              <rect x="40" y="55" width="110" height="12" rx="6" fill="#DDB088" opacity="0.4" />
-              <rect x="110" y="47" width="40" height="52" rx="10" fill="#40916C" />
-              <rect x="5" y="45" width="45" height="15" rx="7.5" fill="#C8956C" />
-              <rect x="25" y="58" width="30" height="13" rx="6.5" fill="#B48259" />
-              <rect x="28" y="69" width="28" height="13" rx="6.5" fill="#B48259" />
-            </g>
-          </svg>
-        </div>
+
 
         {/* Card Panel */}
         <motion.div
