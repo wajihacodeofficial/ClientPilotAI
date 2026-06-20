@@ -349,6 +349,11 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
                 <stop offset="0.5" stopColor="#a7f3d0" />
                 <stop offset="1" stopColor="#059669" />
               </linearGradient>
+              <linearGradient id="rocketBody" x1="225" y1="240" x2="275" y2="360" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#74C69D" />
+                <stop offset="0.5" stopColor="#40916C" />
+                <stop offset="1" stopColor="#1A4A32" />
+              </linearGradient>
             </defs>
 
             <ellipse cx="250" cy="420" rx="180" ry="24" fill="#05140E" opacity="0.6" filter="blur(8px)" />
@@ -384,20 +389,63 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
               <rect x="270" y="290" width="30" height="100" rx="15" fill="#74C69D" />
             </g>
 
-            <g className="svg-character" filter="url(#clayShadow)">
-              <ellipse cx="250" cy="405" rx="45" ry="12" fill="#000" fillOpacity="0.15" />
-              <rect x="210" y="270" width="80" height="120" rx="40" fill="url(#mintBodyGradient)" />
-              <rect x="220" y="285" width="60" height="40" rx="16" fill="#0f172a" />
-              <circle cx="238" cy="305" r="10" fill="#ffffff" />
-              <circle cx="239" cy="305" r="5" fill="#059669" />
-              <circle cx="262" cy="305" r="10" fill="#ffffff" />
-              <circle cx="261" cy="305" r="5" fill="#059669" />
-              <path d="M 244 338 Q 250 344 256 338" stroke="#047857" strokeWidth="4.5" strokeLinecap="round" fill="none" />
-              <rect x="195" y="310" width="18" height="36" rx="9" fill="#059669" transform="rotate(-15 195 310)" />
-              <rect x="287" y="310" width="18" height="36" rx="9" fill="#059669" transform="rotate(15 287 310)" />
-              <path d="M 250 270 L 250 245" stroke="#059669" strokeWidth="5" strokeLinecap="round" />
-              <circle cx="250" cy="240" r="5" fill="#FFB347" />
-            </g>
+            <AnimatePresence mode="wait">
+              {mode === 'login' ? (
+                <motion.g
+                  key="scout"
+                  initial={{ opacity: 0, scale: 0.7, y: 30 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.7, y: -30 }}
+                  transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+                  className="svg-character"
+                  filter="url(#clayShadow)"
+                >
+                  <ellipse cx="250" cy="405" rx="45" ry="12" fill="#000" fillOpacity="0.15" />
+                  <rect x="210" y="270" width="80" height="120" rx="40" fill="url(#mintBodyGradient)" />
+                  <rect x="220" y="285" width="60" height="40" rx="16" fill="#0f172a" />
+                  <circle cx="238" cy="305" r="10" fill="#ffffff" />
+                  <circle cx="239" cy="305" r="5" fill="#059669" />
+                  <circle cx="262" cy="305" r="10" fill="#ffffff" />
+                  <circle cx="261" cy="305" r="5" fill="#059669" />
+                  <path d="M 244 338 Q 250 344 256 338" stroke="#047857" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+                  <rect x="195" y="310" width="18" height="36" rx="9" fill="#059669" transform="rotate(-15 195 310)" />
+                  <rect x="287" y="310" width="18" height="36" rx="9" fill="#059669" transform="rotate(15 287 310)" />
+                  <path d="M 250 270 L 250 245" stroke="#059669" strokeWidth="5" strokeLinecap="round" />
+                  <circle cx="250" cy="240" r="5" fill="#FFB347" />
+                </motion.g>
+              ) : (
+                <motion.g
+                  key="bolt"
+                  initial={{ opacity: 0, scale: 0.7, y: 30 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  exit={{ opacity: 0, scale: 0.7, y: -30 }}
+                  transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+                  className="svg-character"
+                  filter="url(#clayShadow)"
+                >
+                  <ellipse cx="250" cy="405" rx="40" ry="10" fill="#000" fillOpacity="0.15" />
+                  {/* Flames */}
+                  <path d="M 240 360 Q 250 405 260 360 Q 250 385 240 360 Z" fill="#ff9f1c" />
+                  <path d="M 243 360 Q 250 395 257 360 Q 250 380 243 360 Z" fill="#ff5a5f" />
+                  {/* Rocket Body */}
+                  <rect x="225" y="240" width="50" height="120" rx="25" fill="url(#rocketBody)" />
+                  {/* Window / Screen */}
+                  <rect x="233" y="265" width="34" height="34" rx="12" fill="#0f172a" />
+                  {/* Eyes / Face in window */}
+                  <circle cx="243" cy="278" r="4" fill="#ffffff" />
+                  <circle cx="243" cy="278" r="2" fill="#059669" />
+                  <circle cx="257" cy="278" r="4" fill="#ffffff" />
+                  <circle cx="257" cy="278" r="2" fill="#059669" />
+                  <path d="M 246 288 Q 250 292 254 288" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" fill="none" />
+                  {/* Fins */}
+                  <path d="M 225 320 L 205 350 L 225 350 Z" fill="#047857" />
+                  <path d="M 275 320 L 295 350 L 275 350 Z" fill="#047857" />
+                  {/* Antenna/tip */}
+                  <path d="M 250 240 L 250 220" stroke="#047857" strokeWidth="4" strokeLinecap="round" />
+                  <circle cx="250" cy="216" r="4" fill="#FFB347" />
+                </motion.g>
+              )}
+            </AnimatePresence>
 
             <g className="svg-float-pink" filter="url(#clayShadow)">
               <rect x="100" y="280" width="22" height="48" rx="11" fill="url(#pinkGrad)" transform="rotate(-40 100 280)" />
@@ -428,16 +476,22 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         </div>
 
         {/* Card Panel */}
-        <div style={{
-          backgroundColor: '#F0FFF4',
-          width: '100%',
-          maxWidth: '440px',
-          padding: '40px 36px',
-          borderRadius: '28px',
-          boxShadow: 'inset 4px 4px 0px rgba(255, 255, 255, 0.9), 0 20px 45px rgba(13, 43, 31, 0.45)',
-          border: '3.5px solid #2D6A4F',
-          zIndex: 30
-        }}>
+        <motion.div
+          key={`card-${mode}`}
+          initial={{ scale: 0.95, opacity: 0.85 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
+          style={{
+            backgroundColor: '#F0FFF4',
+            width: '100%',
+            maxWidth: '440px',
+            padding: '40px 36px',
+            borderRadius: '28px',
+            boxShadow: 'inset 4px 4px 0px rgba(255, 255, 255, 0.9), 0 20px 45px rgba(13, 43, 31, 0.45)',
+            border: '3.5px solid #2D6A4F',
+            zIndex: 30
+          }}
+        >
           <AnimatePresence mode="wait">
             <motion.div
               key={mode}
@@ -596,7 +650,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
               </div>
             </motion.div>
           </AnimatePresence>
-        </div>
+        </motion.div>
       </div>
 
     </div>

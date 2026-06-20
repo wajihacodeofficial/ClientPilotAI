@@ -33,7 +33,7 @@ function App() {
 
         {/* ── Auth pages ─────────────────────────────────────── */}
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
+        <Route path="/signup" element={<LoginPage />} />
 
         {/* ── Protected app routes ───────────────────────────── */}
         <Route element={<AuthGuard />}>
