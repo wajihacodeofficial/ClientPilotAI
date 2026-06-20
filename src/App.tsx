@@ -2,7 +2,6 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { AppShell } from '@/components/layout/AppShell'
 import { AuthGuard } from '@/components/layout/AuthGuard'
 import { DashboardPage } from '@/pages/DashboardPage'
-import { ClayDashboardPage } from './pages/ClayDashboardPage'
 import { LeadDiscoveryPage } from '@/pages/LeadDiscoveryPage'
 import { PipelinePage } from '@/pages/PipelinePage'
 import { LeadsPage } from '@/pages/LeadsPage'
@@ -39,7 +38,6 @@ function App() {
         <Route element={<AuthGuard />}>
           <Route element={<AppShell />}>
             <Route path="/app" element={<DashboardPage />} />
-            <Route path="/app/clay" element={<ClayDashboardPage />} />
             <Route path="/app/discover" element={<LeadDiscoveryPage />} />
             <Route path="/app/pipeline" element={<PipelinePage />} />
             <Route path="/app/leads" element={<LeadsPage />} />

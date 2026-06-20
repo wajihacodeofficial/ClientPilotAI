@@ -408,6 +408,25 @@ export function LandingPage() {
         </div>
       </section>
 
+      {/* CLAYMEN SQUAD SECTION */}
+      <section className="py-20 bg-linear-to-br from-[#d1fae5] to-[#f0fdf4]" id="squad">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <div className="max-w-[700px] mx-auto mb-12">
+            <h2 className="text-3xl md:text-5xl font-extrabold mb-4">Meet Your AI Growth Squad</h2>
+            <p className="text-[#1e293b] text-base">
+              Your autonomous agents work 24/7 to source leads, qualify metrics, and draft bespoke outreach for your agency.
+            </p>
+          </div>
+          <div className="relative inline-block max-w-4xl mx-auto rounded-[36px] overflow-hidden border-4 border-white clay-shadow-teal bg-white/60 p-4">
+            <img 
+              src="/claymen.png" 
+              alt="ClientPilot AI Claymen Squad" 
+              className="w-full h-auto rounded-[28px] object-cover" 
+            />
+          </div>
+        </div>
+      </section>
+
       {/* TESTIMONIALS */}
       <section className="py-28">
         <div className="max-w-7xl mx-auto px-6">
