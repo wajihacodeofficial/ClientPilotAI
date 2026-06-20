@@ -162,7 +162,7 @@ async function scoreLeadAsync(leadId: string, name: string, category: string, ad
       market_density: score.market_density,
       competitor_presence: score.competitor_presence,
       ai_reasoning: score.ai_reasoning,
-      model_used: 'gpt-5.5'
+      model_used: 'gemini-2.5-flash'
     }, { onConflict: 'lead_id' });
   }
 }
@@ -181,7 +181,7 @@ router.post('/:id/score', async (req, res) => {
     const { data: updated } = await supabaseAdmin.from('lead_scores').upsert({
       lead_id: id,
       ...score,
-      model_used: 'gpt-5.5'
+      model_used: 'gemini-2.5-flash'
     }, { onConflict: 'lead_id' }).select().single();
 
     res.json(updated);
