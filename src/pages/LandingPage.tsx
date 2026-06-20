@@ -218,8 +218,7 @@ export function LandingPage() {
           
           <div className="md:col-span-7 flex flex-col items-start">
             <div className="shimmer-badge relative overflow-hidden inline-flex items-center gap-2 px-4.5 py-2 rounded-full bg-linear-to-br from-[#d1fae5] to-[#a7f3d0] clay-shadow-mint text-[#059669] text-xs font-bold mb-6">
-              ✨ Now with GPT-4 powered lead scoring
-            </div>
+              Now with GPT-5.5 powered lead scoring            </div>
 
             <h1 className="text-4xl md:text-6xl font-extrabold tracking-tight mb-6 text-[#0f172a] leading-tight">
               Acquire High-Value<br />Clients on <span className="bg-linear-to-r from-[#10b981] to-[#059669] bg-clip-text text-transparent">Autopilot.</span>
