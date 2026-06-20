@@ -1,13 +1,14 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  LayoutDashboard, Radar, Kanban, Users, Settings, ChevronLeft, ChevronRight,
+  LayoutDashboard, Radar, Kanban, Users, Settings, ChevronLeft, ChevronRight, Sparkles,
 } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { cn } from '@/lib/utils'
 
 const navItems = [
   { to: '/app', label: 'Dashboard', icon: LayoutDashboard, end: true, role: 'user' },
+  { to: '/app/clay', label: 'Clay CRM', icon: Sparkles, end: false, role: 'user' },
   { to: '/app/discover', label: 'Lead Discovery', icon: Radar, end: false, role: 'user' },
   { to: '/app/pipeline', label: 'Pipeline', icon: Kanban, end: false, role: 'user' },
   { to: '/app/leads', label: 'Leads', icon: Users, end: false, role: 'user' },

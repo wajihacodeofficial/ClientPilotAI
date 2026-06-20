@@ -3,12 +3,12 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const jwtSecret = process.env.SUPABASE_JWT_SECRET;
 
 const missingVars: string[] = [];
-if (!supabaseUrl) missingVars.push('SUPABASE_URL');
+if (!supabaseUrl) missingVars.push('SUPABASE_URL / VITE_SUPABASE_URL');
 if (!supabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY');
 if (!jwtSecret) missingVars.push('SUPABASE_JWT_SECRET');
 
