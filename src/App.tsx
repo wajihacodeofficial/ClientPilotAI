@@ -5,12 +5,12 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { LeadDiscoveryPage } from '@/pages/LeadDiscoveryPage'
 import { PipelinePage } from '@/pages/PipelinePage'
 import { LeadsPage } from '@/pages/LeadsPage'
+import { ProposalsPage } from '@/pages/ProposalsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { AdminDashboardPage } from '@/pages/AdminDashboardPage'
 import { LandingPage } from '@/pages/LandingPage'
 import { AboutPage } from '@/pages/AboutPage'
 import { LoginPage } from '@/pages/LoginPage'
-import { SignupPage } from '@/pages/SignupPage'
 import { useAppStore } from '@/store/useAppStore'
 
 // Role Guard for Admin Panel
@@ -41,6 +41,7 @@ function App() {
             <Route path="/app/discover" element={<LeadDiscoveryPage />} />
             <Route path="/app/pipeline" element={<PipelinePage />} />
             <Route path="/app/leads" element={<LeadsPage />} />
+            <Route path="/app/proposals" element={<ProposalsPage />} />
             <Route
               path="/app/admin"
               element={

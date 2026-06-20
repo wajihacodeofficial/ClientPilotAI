@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AppState, FilterState, Lead, PipelineStage, OutreachMessage } from '@/types'
+import type { AppState, FilterState, Lead, PipelineStage, OutreachMessage, Proposal } from '@/types'
 import { supabase } from '@/lib/supabaseClient'
 
 const defaultFilters: FilterState = {
@@ -12,7 +12,7 @@ const defaultFilters: FilterState = {
 }
 
 export const useAppStore = create<AppState & {
-  updateLeadScore: (id: string, scoreData: any) => void;
+  updateLeadScore: (id: string, scoreData: Record<string, unknown>) => void;
   initRealtime: () => () => void;
 }>((set, get) => ({
   leads: [],
@@ -24,6 +24,8 @@ export const useAppStore = create<AppState & {
   darkMode: false,
   userRole: null,
   userEmail: null,
+  proposals: [],
+
 
   setLeads: (leads: Lead[]) => set({ leads }),
   setSelectedLeadId: (id: string | null) => set({ selectedLeadId: id }),
@@ -53,37 +55,64 @@ export const useAppStore = create<AppState & {
       ),
     })),
   updateLeadOutreach: (id: string, message: OutreachMessage) =>
-    set((state) => ({
-      leads: state.leads.map((l) =>
+    set((state) => {
+      const updater = (l: Lead) =>
         l.id === id
           ? { ...l, outreachMessages: [message, ...(l.outreachMessages ?? [])] as OutreachMessage[] }
-          : l
-      ),
-    })),
-    
-  updateLeadScore: (id: string, scoreData: any) =>
-    set((state) => {
-      const updater = (l: Lead) => {
-        if (l.id !== id) return l;
-        return {
-          ...l,
-          score: scoreData.overall_score,
-          scoreBreakdown: {
-            digitalPresenceGap: scoreData.digital_presence_gap,
-            categoryFit: scoreData.category_fit,
-            reviewActivity: scoreData.review_activity,
-            marketDensity: scoreData.market_density,
-            competitorPresence: scoreData.competitor_presence,
-          },
-          aiAnalysis: scoreData.ai_reasoning
-        };
-      };
-      
+          : l;
       return {
         leads: state.leads.map(updater),
         discoveryResults: state.discoveryResults.map(updater),
       };
     }),
+    
+  updateLeadScore: (id: string, scoreData: Record<string, unknown>) =>
+    set((state) => {
+      const score = scoreData as {
+        overall_score: number;
+        digital_presence_gap: number;
+        category_fit: number;
+        review_activity: number;
+        market_density: number;
+        competitor_presence: number;
+        ai_reasoning: string;
+      };
+      const updater = (l: Lead) => {
+        if (l.id !== id) return l;
+        return {
+          ...l,
+          score: score.overall_score,
+          scoreBreakdown: {
+            digitalPresenceGap: score.digital_presence_gap,
+            categoryFit: score.category_fit,
+            reviewActivity: score.review_activity,
+            marketDensity: score.market_density,
+            competitorPresence: score.competitor_presence,
+          },
+          aiAnalysis: score.ai_reasoning,
+        };
+      };
+      return {
+        leads: state.leads.map(updater),
+        discoveryResults: state.discoveryResults.map(updater),
+      };
+    }),
+
+  setProposals: (proposals: Proposal[]) => set({ proposals }),
+  addProposal: (proposal: Proposal) =>
+    set((state) => ({
+      proposals: [proposal, ...state.proposals.filter((p) => p.id !== proposal.id)],
+    })),
+  updateProposalStatus: (id: string, status: Proposal['status']) =>
+    set((state) => ({
+      proposals: state.proposals.map((p) =>
+        p.id === id ? { ...p, status, updatedAt: new Date().toISOString() } : p
+      ),
+    })),
+  deleteProposal: (id: string) =>
+    set((state) => ({
+      proposals: state.proposals.filter((p) => p.id !== id),
+    })),
 
   initRealtime: () => {
     console.log('Initializing Supabase Realtime subscriptions...');
@@ -102,8 +131,8 @@ export const useAppStore = create<AppState & {
     const scoresChannel = supabase.channel('scores_channel')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'lead_scores' }, (payload) => {
         console.log('Realtime score change received!', payload);
-        const record = payload.new as Record<string, any>;
-        if (record && record['lead_id']) {
+        const record = payload.new as Record<string, unknown>;
+        if (record && typeof record['lead_id'] === 'string') {
           get().updateLeadScore(record['lead_id'], record);
         }
       })

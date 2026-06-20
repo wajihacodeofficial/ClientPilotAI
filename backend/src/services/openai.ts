@@ -91,3 +91,64 @@ The email should be friendly, not overly salesy, and highlight the specific valu
     return null;
   }
 };
+
+const ProposalResponseSchema = z.object({
+  title: z.string(),
+  content: z.string(),
+});
+
+export const generateProposal = async (
+  businessName: string,
+  category: string,
+  address: string,
+  phone?: string,
+  websiteUrl?: string,
+  aiAnalysis?: string,
+  rawOsmTags?: Record<string, unknown>
+): Promise<{ title: string; content: string } | null> => {
+  try {
+    const prompt = `You are a professional AI consultant at a software development agency called "ClientPilot AI" (representing Acme Software Agency). Write a detailed, personalized web/digital services proposal for the following business:
+    
+Business Details:
+- Name: ${businessName}
+- Category: ${category}
+- Address: ${address}
+${phone ? `- Phone: ${phone}` : ''}
+${websiteUrl ? `- Website: ${websiteUrl}` : '- Website: None detected (Major digital presence gap!)'}
+${aiAnalysis ? `- Analysis: ${aiAnalysis}` : ''}
+${rawOsmTags ? `- Raw details: ${JSON.stringify(rawOsmTags)}` : ''}
+
+Create a customized proposal. Do NOT use a generic, static template. If the business is a restaurant, focus on online menus, reservation systems, and Google Maps Optimization. If it's a salon or clinic, focus on online appointment booking systems. If it's retail, focus on e-commerce. If it has no website, focus on building their first modern web presence. If it has an outdated site, focus on modern mobile-first redesign.
+
+Output MUST be a JSON object with two fields:
+- "title": A compelling, specific proposal title (e.g. "Digital Transformation Proposal for Al Madina Bakery").
+- "content": The proposal content written in clean, professional markdown format, including sections like:
+  - Executive Summary
+  - Digital Presence Review (identifying gaps)
+  - Tailored Solution Proposal (specific features like booking, WhatsApp, menu, etc.)
+  - Scope of Work & Milestones
+  - About Our Agency (Acme Software Agency)
+  - Call to Action / Next Steps
+
+Return the result as a JSON object matching this schema: {"title": "...", "content": "..."}`;
+
+    const model = genAI.getGenerativeModel({
+      model: 'gemini-2.5-flash',
+      generationConfig: {
+        responseMimeType: 'application/json',
+      },
+      systemInstruction: 'You are a professional business consultant and sales copywriter. Output JSON only: {"title": "...", "content": "..."}'
+    });
+
+    const response = await model.generateContent(prompt);
+    const content = response.response.text();
+    if (!content) return null;
+
+    const parsed = JSON.parse(content);
+    return ProposalResponseSchema.parse(parsed);
+  } catch (error) {
+    console.error('Gemini Proposal Generation Error:', error);
+    return null;
+  }
+};
+

@@ -5,8 +5,10 @@ import rateLimit from 'express-rate-limit';
 import leadsRouter from './routes/leads';
 import analyticsRouter from './routes/analytics';
 import adminRouter from './routes/admin';
+import proposalsRouter from './routes/proposals';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { supabaseAdmin } from './lib/supabase';
+
 
 dotenv.config();
 
@@ -50,8 +52,10 @@ app.get('/health', (_req, res) => {
 
 // Protected API Routes
 app.use('/api/leads', authMiddleware, leadsRouter);
+app.use('/api/proposals', authMiddleware, proposalsRouter);
 app.use('/api/analytics', authMiddleware, analyticsRouter);
 app.use('/api/admin', authMiddleware, adminMiddleware, adminRouter);
+
 
 // Error handling middleware
 app.use((err: unknown, req: express.Request, res: express.Response, _next: express.NextFunction) => {

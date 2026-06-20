@@ -152,6 +152,23 @@ export interface FilterState {
   searchQuery: string;
 }
 
+export interface Proposal {
+  id: string;
+  leadId: string;
+  workspaceId: string;
+  title: string;
+  content: string;
+  status: 'draft' | 'submitted' | 'reviewed' | 'replied' | 'accepted' | 'rejected';
+  createdAt: string;
+  updatedAt: string;
+  leads?: {
+    business_name: string;
+    category: string;
+    address: string;
+    city: string;
+  };
+}
+
 export interface AppState {
   leads: Lead[];
   selectedLeadId: string | null;
@@ -162,6 +179,7 @@ export interface AppState {
   darkMode: boolean;
   userRole: 'admin' | 'user' | null;
   userEmail: string | null;
+  proposals: Proposal[];
 
   // Actions
   setLeads: (leads: Lead[]) => void;
@@ -175,4 +193,8 @@ export interface AppState {
   setUserEmail: (email: string | null) => void;
   updateLeadStage: (id: string, stage: PipelineStage) => void;
   updateLeadOutreach: (id: string, message: OutreachMessage) => void;
+  setProposals: (proposals: Proposal[]) => void;
+  addProposal: (proposal: Proposal) => void;
+  updateProposalStatus: (id: string, status: Proposal['status']) => void;
+  deleteProposal: (id: string) => void;
 }
