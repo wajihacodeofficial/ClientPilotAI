@@ -1,16 +1,26 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
-import { geocodeLocation, queryOverpass } from '../services/osm';
+import { discoverBusinessesByLocation, OSMGeocodingError, OSMOverpassError } from '../services/osm';
 import { scoreLead, generateOutreach } from '../services/openai';
 
 const router = Router();
 
 const DiscoverSchema = z.object({
-  location: z.string(),
-  categories: z.array(z.string()),
-  radiusMeters: z.number().min(100).max(50000).default(5000)
+  location: z.string().trim().min(1, 'Location is required'),
+  categories: z.array(z.string()).default([]),
+  radiusMeters: z.coerce.number().min(100).max(50000).default(5000)
 });
+
+const inferLeadCategory = (requestedCategories: string[], osmCategory: string, osmType: string) => {
+  if (requestedCategories.length > 0) return requestedCategories[0];
+  if (osmType === 'shop') return 'retail';
+  if (['restaurant', 'fast_food'].includes(osmCategory)) return 'restaurant';
+  if (osmCategory === 'cafe') return 'cafe';
+  if (['clinic', 'doctors', 'dentist', 'pharmacy'].includes(osmCategory)) return 'clinic';
+  if (['fitness_centre', 'sports_centre', 'gym'].includes(osmCategory)) return 'gym';
+  return osmCategory || 'business';
+};
 
 // GET /api/leads
 router.get('/', async (req, res) => {
@@ -58,33 +68,52 @@ router.post('/discover', async (req, res) => {
 
     if (!profile?.workspace_id) return res.status(403).json({ error: 'No workspace found' });
 
-    // 1. Geocode
-    const coords = await geocodeLocation(location);
-    if (!coords) return res.status(400).json({ error: 'Could not geocode location' });
+    // 1. Geocode location, 2. query Overpass, 3. normalize OSM businesses
+    const discovery = await discoverBusinessesByLocation({
+      location,
+      categories,
+      radiusMeters,
+      limit: 100,
+    });
 
-    // 2. Query OSM
-    const osmNodes = await queryOverpass(coords.lat, coords.lng, radiusMeters, categories);
+    if (discovery.businesses.length === 0) {
+      return res.json({
+        leads: [],
+        count: 0,
+        message: 'No businesses found for this location and filter.',
+        geocodedLocation: discovery.geocodedLocation,
+        radiusMeters: discovery.radiusMeters,
+        categories: discovery.categories,
+      });
+    }
 
-    // 3. Process & Insert Leads
+    // 4. Process & Insert Leads
     const newLeads = [];
-    for (const node of osmNodes) {
-      const category = categories.length > 0 ? categories[0] : 'retail'; // simplified
-      const hasWebsite = !!node.tags?.website;
+    for (const business of discovery.businesses) {
+      const category = inferLeadCategory(categories, business.category, business.type);
+      const hasWebsite = !!business.website;
+      const address = business.address || [business.area, business.city].filter(Boolean).join(', ') || discovery.geocodedLocation.displayName;
+      const city = business.city || business.area || location.split(',')[0]?.trim() || discovery.geocodedLocation.displayName;
       
       const leadData = {
         workspace_id: profile.workspace_id,
-        business_name: node.tags?.name || 'Unknown Business',
+        business_name: business.name,
         category,
-        address: [node.tags?.['addr:housenumber'], node.tags?.['addr:street']].filter(Boolean).join(' '),
-        city: node.tags?.['addr:city'] || location.split(',')[0],
-        lat: node.lat,
-        lng: node.lon,
-        phone: node.tags?.phone || null,
+        address,
+        city,
+        lat: business.latitude,
+        lng: business.longitude,
+        phone: business.phone || null,
         has_website: hasWebsite,
-        website_url: node.tags?.website || null,
-        osm_id: node.id.toString(),
+        website_url: business.website || null,
+        osm_id: business.osmId,
         source: 'osm',
-        raw_osm_tags: node.tags
+        raw_osm_tags: {
+          ...business.rawTags,
+          osm_type: business.osmType,
+          osm_category: business.category,
+          osm_business_type: business.type,
+        }
       };
 
       // Upsert to avoid duplicates, returning representation
@@ -97,14 +126,26 @@ router.post('/discover', async (req, res) => {
       if (!error && inserted) {
         newLeads.push(inserted);
         
-        // 4. Async trigger OpenAI scoring (do not await)
+        // 5. Async trigger OpenAI scoring (do not await)
         scoreLeadAsync(inserted.id, leadData.business_name, category, leadData.address, hasWebsite).catch(console.error);
       }
     }
 
-    res.json({ leads: newLeads, count: newLeads.length });
+    res.json({
+      leads: newLeads,
+      count: newLeads.length,
+      geocodedLocation: discovery.geocodedLocation,
+      radiusMeters: discovery.radiusMeters,
+      categories: discovery.categories,
+    });
   } catch (err: unknown) {
-    res.status(400).json({ error: err instanceof Error ? err.message : 'Bad Request' });
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid discovery request', details: err.issues });
+    }
+    if (err instanceof OSMGeocodingError || err instanceof OSMOverpassError) {
+      return res.status(err.statusCode).json({ error: err.message });
+    }
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
   }
 });
 
