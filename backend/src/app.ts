@@ -12,8 +12,26 @@ dotenv.config();
 
 export const app = express();
 
-// Middleware
-app.use(cors());
+// CORS: allow local dev + Vercel production frontend
+// Set FRONTEND_URL env var on Railway to your Vercel app URL e.g. https://clientpilotai.vercel.app
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://192.168.1.4:5173',
+  process.env.FRONTEND_URL,
+].filter(Boolean) as string[];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (e.g. mobile apps, curl, Postman)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS blocked for origin: ${origin}`));
+    }
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 // Basic rate limiting
