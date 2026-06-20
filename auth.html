@@ -751,13 +751,13 @@
       <div class="dots-overlay"></div>
       
       <!-- Top Branding -->
-      <div class="logo-container">
+      <a href="/" class="logo-container" style="text-decoration: none; display: flex; align-items: center; gap: 12px; z-index: 20;">
         <img src="/logo.png" alt="ClientPilot AI Logo" class="logo-icon" style="object-fit: cover;" />
         <div>
           <div class="logo-text">ClientPilot AI</div>
           <div class="tagline">Acquire High-Value Clients on Autopilot.</div>
         </div>
-      </div>
+      </a>
 
       <!-- Morphing Hero Text -->
       <div class="hero-text-wrapper">
@@ -809,6 +809,11 @@
             <linearGradient id="cyanGrad" x1="300" y1="200" x2="420" y2="240" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stop-color="#4EECD6" />
               <stop offset="100%" stop-color="#2EC4B6" />
+            </linearGradient>
+            <linearGradient id="mintBodyGradient" x1="90" y1="80" x2="230" y2="250" gradientUnits="userSpaceOnUse">
+              <stop stop-color="#d1fae5" />
+              <stop offset="0.5" stop-color="#a7f3d0" />
+              <stop offset="1" stop-color="#059669" />
             </linearGradient>
           </defs>
 
@@ -867,23 +872,19 @@
             <rect x="270" y="290" width="30" height="20" rx="15" fill="#B7E4C7" />
           </g>
 
-          <!-- ELEMENT 6: Clay Character -->
           <g class="svg-character" filter="url(#clayShadow)">
-            <!-- Body Blob -->
-            <rect x="220" y="365" width="44" height="45" rx="20" fill="#9B8EC4" />
-            <!-- Head -->
-            <circle cx="242" cy="345" r="22" fill="#9B8EC4" />
-            <!-- Head Highlight -->
-            <circle cx="236" cy="336" r="6" fill="#FFF" opacity="0.3" />
-            <!-- Left Arm Stub -->
-            <rect x="208" y="372" width="14" height="16" rx="7" fill="#897BB8" transform="rotate(-25 208 372)" />
-            <!-- Right Arm Stub -->
-            <rect x="260" y="372" width="14" height="16" rx="7" fill="#897BB8" transform="rotate(25 260 372)" />
-            <!-- Eyes -->
-            <circle cx="236" cy="345" r="2.5" fill="#0D2B1F" />
-            <circle cx="248" cy="345" r="2.5" fill="#0D2B1F" />
-            <!-- Smile -->
-            <path d="M 239 350 Q 242 353 245 350" stroke="#0D2B1F" stroke-width="2" stroke-linecap="round" fill="none" />
+            <ellipse cx="250" cy="405" rx="45" ry="12" fill="#000" fill-opacity="0.15" />
+            <rect x="210" y="270" width="80" height="120" rx="40" fill="url(#mintBodyGradient)" />
+            <rect x="220" y="285" width="60" height="40" rx="16" fill="#0f172a" />
+            <circle cx="238" cy="305" r="10" fill="#ffffff" />
+            <circle cx="239" cy="305" r="5" fill="#059669" />
+            <circle cx="262" cy="305" r="10" fill="#ffffff" />
+            <circle cx="261" cy="305" r="5" fill="#059669" />
+            <path d="M 244 338 Q 250 344 256 338" stroke="#047857" stroke-width="4.5" stroke-linecap="round" fill="none" />
+            <rect x="195" y="310" width="18" height="36" rx="9" fill="#059669" transform="rotate(-15 195 310)" />
+            <rect x="287" y="310" width="18" height="36" rx="9" fill="#059669" transform="rotate(15 287 310)" />
+            <path d="M 250 270 L 250 245" stroke="#059669" stroke-width="5" stroke-linecap="round" />
+            <circle cx="250" cy="240" r="5" fill="#FFB347" />
           </g>
 
           <!-- ELEMENT 4 (Part 2): Floating magenta pill -->

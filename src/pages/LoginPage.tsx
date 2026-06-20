@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, Link, useLocation } from 'react-router-dom'
+import { motion, AnimatePresence } from 'framer-motion'
 import { supabase } from '@/lib/supabaseClient'
 import { useAppStore } from '@/store/useAppStore'
 import { Loader2 } from 'lucide-react'
@@ -293,20 +294,30 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
         <div className="dots-overlay"></div>
         
         {/* Top Branding */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', zIndex: 20 }}>
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '12px', zIndex: 20, textDecoration: 'none' }}>
           <img src="/logo.png" alt="ClientPilot AI Logo" style={{ width: '44px', height: '44px', borderRadius: '14px', objectFit: 'cover', boxShadow: '0 6px 12px rgba(0,0,0,0.2)' }} />
           <div>
             <div style={{ fontSize: '22px', fontWeight: 900, color: '#FFF8F0', letterSpacing: '-0.5px' }}>ClientPilot AI</div>
             <div style={{ fontSize: '12px', fontWeight: 700, color: '#74C69D', letterSpacing: '0.5px', textTransform: 'uppercase' }}>Acquire High-Value Clients on Autopilot.</div>
           </div>
-        </div>
+        </Link>
 
         {/* Hero Text */}
-        <div style={{ marginTop: '40px', position: 'relative', zIndex: 20 }}>
-          <h1 className="hero-title" style={{ color: '#ffffff' }}>
-            <span>{mode === 'signup' ? 'Sign Up' : 'Sign In'}</span>
-            <span style={{ display: 'block', color: '#74C69D' }}>Now!</span>
-          </h1>
+        <div style={{ marginTop: '40px', position: 'relative', zIndex: 20, height: '140px' }}>
+          <AnimatePresence mode="wait">
+            <motion.h1
+              key={mode}
+              initial={{ opacity: 0, rotateX: -90, y: -20 }}
+              animate={{ opacity: 1, rotateX: 0, y: 0 }}
+              exit={{ opacity: 0, rotateX: 90, y: 20 }}
+              transition={{ duration: 0.4 }}
+              className="hero-title"
+              style={{ color: '#ffffff', position: 'absolute', top: 0, left: 0 }}
+            >
+              <span>{mode === 'signup' ? 'Sign Up' : 'Sign In'}</span>
+              <span style={{ display: 'block', color: '#74C69D' }}>Now!</span>
+            </motion.h1>
+          </AnimatePresence>
         </div>
 
         {/* 3D Graphic Scene */}
@@ -332,6 +343,11 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
               <linearGradient id="cyanGrad" x1="300" y1="200" x2="420" y2="240" gradientUnits="userSpaceOnUse">
                 <stop offset="0%" stop-color="#4EECD6" />
                 <stop offset="100%" stop-color="#2EC4B6" />
+              </linearGradient>
+              <linearGradient id="mintBodyGradient" x1="90" y1="80" x2="230" y2="250" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#d1fae5" />
+                <stop offset="0.5" stopColor="#a7f3d0" />
+                <stop offset="1" stopColor="#059669" />
               </linearGradient>
             </defs>
 
@@ -369,11 +385,18 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
             </g>
 
             <g className="svg-character" filter="url(#clayShadow)">
-              <rect x="220" y="365" width="44" height="45" rx="20" fill="#9B8EC4" />
-              <circle cx="242" cy="345" r="22" fill="#9B8EC4" />
-              <circle cx="236" cy="345" r="2.5" fill="#0D2B1F" />
-              <circle cx="248" cy="345" r="2.5" fill="#0D2B1F" />
-              <path d="M 239 350 Q 242 353 245 350" stroke="#0D2B1F" stroke-width="2" stroke-linecap="round" fill="none" />
+              <ellipse cx="250" cy="405" rx="45" ry="12" fill="#000" fillOpacity="0.15" />
+              <rect x="210" y="270" width="80" height="120" rx="40" fill="url(#mintBodyGradient)" />
+              <rect x="220" y="285" width="60" height="40" rx="16" fill="#0f172a" />
+              <circle cx="238" cy="305" r="10" fill="#ffffff" />
+              <circle cx="239" cy="305" r="5" fill="#059669" />
+              <circle cx="262" cy="305" r="10" fill="#ffffff" />
+              <circle cx="261" cy="305" r="5" fill="#059669" />
+              <path d="M 244 338 Q 250 344 256 338" stroke="#047857" strokeWidth="4.5" strokeLinecap="round" fill="none" />
+              <rect x="195" y="310" width="18" height="36" rx="9" fill="#059669" transform="rotate(-15 195 310)" />
+              <rect x="287" y="310" width="18" height="36" rx="9" fill="#059669" transform="rotate(15 287 310)" />
+              <path d="M 250 270 L 250 245" stroke="#059669" strokeWidth="5" strokeLinecap="round" />
+              <circle cx="250" cy="240" r="5" fill="#FFB347" />
             </g>
 
             <g className="svg-float-pink" filter="url(#clayShadow)">
@@ -415,156 +438,164 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
           border: '3.5px solid #2D6A4F',
           zIndex: 30
         }}>
-          
-          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <h2 style={{ fontSize: '32px', fontWeight: 900, color: '#0D2B1F', letterSpacing: '-0.5px', marginBottom: '6px' }}>
-              {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
-            </h2>
-            <p style={{ fontSize: '14px', color: '#40916C', fontWeight: 700 }}>
-              {mode === 'signup' ? 'Unlock your predictive client acquisition portal' : 'Enter credentials to pilot your acquisition'}
-            </p>
-          </div>
-          <div style={{ display: 'flex', alignItems: 'center', textAlign: 'center', color: '#40916C', fontSize: '11px', fontWeight: 900, letterSpacing: '1.5px', marginBottom: '20px' }}>
-            <div style={{ flex: 1, borderBottom: '2px solid #B7E4C7', marginRight: '12px' }}></div>
-            OR
-            <div style={{ flex: 1, borderBottom: '2px solid #B7E4C7', marginLeft: '12px' }}></div>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={mode}
+              initial={{ opacity: 0, x: 25 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -25 }}
+              transition={{ duration: 0.25 }}
+            >
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <h2 style={{ fontSize: '32px', fontWeight: 900, color: '#0D2B1F', letterSpacing: '-0.5px', marginBottom: '6px' }}>
+                  {mode === 'signup' ? 'Create Account' : 'Welcome Back'}
+                </h2>
+                <p style={{ fontSize: '14px', color: '#40916C', fontWeight: 700 }}>
+                  {mode === 'signup' ? 'Unlock your predictive client acquisition portal' : 'Enter credentials to pilot your acquisition'}
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', textAlign: 'center', color: '#40916C', fontSize: '11px', fontWeight: 900, letterSpacing: '1.5px', marginBottom: '20px' }}>
+                <div style={{ flex: 1, borderBottom: '2px solid #B7E4C7', marginRight: '12px' }}></div>
+                OR
+                <div style={{ flex: 1, borderBottom: '2px solid #B7E4C7', marginLeft: '12px' }}></div>
+              </div>
 
-          <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} noValidate>
-            {mode === 'signup' && (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                <label style={{ fontSize: '13px', fontWeight: 700, color: '#0D2B1F', paddingLeft: '4px' }}>Full Name</label>
-                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                  <input
-                    className={`form-input ${shakeName ? 'shake-animation' : ''}`}
-                    type="text"
-                    placeholder="John Doe"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    style={{ width: '100%', height: '52px', backgroundColor: '#ffffff', border: '2px solid #B7E4C7', borderRadius: '14px', padding: '0 16px 0 16px', fontSize: '14px', fontWeight: 700, color: '#0D2B1F', outline: 'none', boxShadow: 'var(--clay-input)' }}
-                  />
+              <form onSubmit={handleAuth} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }} noValidate>
+                {mode === 'signup' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 700, color: '#0D2B1F', paddingLeft: '4px' }}>Full Name</label>
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                      <input
+                        className={`form-input ${shakeName ? 'shake-animation' : ''}`}
+                        type="text"
+                        placeholder="John Doe"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        style={{ width: '100%', height: '52px', backgroundColor: '#ffffff', border: '2px solid #B7E4C7', borderRadius: '14px', padding: '0 16px 0 16px', fontSize: '14px', fontWeight: 700, color: '#0D2B1F', outline: 'none', boxShadow: 'var(--clay-input)' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '13px', fontWeight: 700, color: '#0D2B1F', paddingLeft: '4px' }}>Email Address</label>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input
+                      className={`form-input ${shakeEmail ? 'shake-animation' : ''}`}
+                      type="email"
+                      placeholder="john@example.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      style={{ width: '100%', height: '52px', backgroundColor: '#ffffff', border: '2px solid #B7E4C7', borderRadius: '14px', padding: '0 16px 0 16px', fontSize: '14px', fontWeight: 700, color: '#0D2B1F', outline: 'none', boxShadow: 'var(--clay-input)' }}
+                    />
+                  </div>
                 </div>
-              </div>
-            )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <label style={{ fontSize: '13px', fontWeight: 700, color: '#0D2B1F', paddingLeft: '4px' }}>Email Address</label>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <input
-                  className={`form-input ${shakeEmail ? 'shake-animation' : ''}`}
-                  type="email"
-                  placeholder="john@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  style={{ width: '100%', height: '52px', backgroundColor: '#ffffff', border: '2px solid #B7E4C7', borderRadius: '14px', padding: '0 16px 0 16px', fontSize: '14px', fontWeight: 700, color: '#0D2B1F', outline: 'none', boxShadow: 'var(--clay-input)' }}
-                />
-              </div>
-            </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <label style={{ fontSize: '13px', fontWeight: 700, color: '#0D2B1F', paddingLeft: '4px' }}>Password</label>
+                    {mode === 'login' && (
+                      <a href="#" style={{ fontSize: '12px', fontWeight: 700, color: '#40916C', textDecoration: 'none' }}>Forgot password?</a>
+                    )}
+                  </div>
+                  <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                    <input
+                      className={`form-input ${shakePassword ? 'shake-animation' : ''}`}
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="••••••••"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      style={{ width: '100%', height: '52px', backgroundColor: '#ffffff', border: '2px solid #B7E4C7', borderRadius: '14px', padding: '0 40px 0 16px', fontSize: '14px', fontWeight: 700, color: '#0D2B1F', outline: 'none', boxShadow: 'var(--clay-input)' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ position: 'absolute', right: '14px', background: 'none', border: 'none', color: '#74C69D', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    >
+                      {showPassword ? 'Hide' : 'Show'}
+                    </button>
+                  </div>
+                </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label style={{ fontSize: '13px', fontWeight: 700, color: '#0D2B1F', paddingLeft: '4px' }}>Password</label>
-                {mode === 'login' && (
-                  <a href="#" style={{ fontSize: '12px', fontWeight: 700, color: '#40916C', textDecoration: 'none' }}>Forgot password?</a>
+                {error && (
+                  <div style={{ fontSize: '13px', fontWeight: 700, color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '10px 14px', borderRadius: '10px', textAlign: 'center' }}>
+                    {error}
+                  </div>
+                )}
+
+                <button
+                  type="submit"
+                  className="btn-submit"
+                  disabled={loading}
+                  style={{
+                    width: '100%',
+                    height: '54px',
+                    border: 'none',
+                    borderRadius: '14px',
+                    background: 'linear-gradient(180deg, #40916C 0%, #2D6A4F 100%)',
+                    color: '#ffffff',
+                    fontSize: '16px',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    boxShadow: 'var(--clay-btn)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px'
+                  }}
+                >
+                  {loading ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    mode === 'signup' ? 'Create Account →' : 'Sign In →'
+                  )}
+                </button>
+              </form>
+
+              {/* DEMO BYPASS BUTTONS */}
+              {mode === 'login' && (
+                <div style={{ marginTop: '20px', borderTop: '2px solid #B7E4C7', paddingTop: '16px' }}>
+                  <p style={{ fontSize: '11px', textAlign: 'center', color: '#2D6A4F', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
+                    Demo Sign In
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      type="button"
+                      onClick={() => handleDemoLogin('admin')}
+                      style={{ flex: 1, height: '36px', backgroundColor: '#ffffff', border: '1.5px solid #2D6A4F', borderRadius: '10px', fontSize: '12px', fontWeight: 800, color: '#2D6A4F', cursor: 'pointer' }}
+                    >
+                      Admin
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDemoLogin('user')}
+                      style={{ flex: 1, height: '36px', backgroundColor: '#ffffff', border: '1.5px solid #2D6A4F', borderRadius: '10px', fontSize: '12px', fontWeight: 800, color: '#2D6A4F', cursor: 'pointer' }}
+                    >
+                      User
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', fontWeight: 700, color: '#2D6A4F' }}>
+                {mode === 'signup' ? (
+                  <>
+                    Already have an account?{' '}
+                    <button className="btn-toggle-state" onClick={() => handleStateToggle('login')} style={{ background: 'none', border: 'none', color: '#40916C', fontWeight: 800, cursor: 'pointer' }}>
+                      Login
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    Don't have an account?{' '}
+                    <button className="btn-toggle-state" onClick={() => handleStateToggle('signup')} style={{ background: 'none', border: 'none', color: '#40916C', fontWeight: 800, cursor: 'pointer' }}>
+                      Sign Up
+                    </button>
+                  </>
                 )}
               </div>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <input
-                  className={`form-input ${shakePassword ? 'shake-animation' : ''}`}
-                  type={showPassword ? 'text' : 'password'}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  style={{ width: '100%', height: '52px', backgroundColor: '#ffffff', border: '2px solid #B7E4C7', borderRadius: '14px', padding: '0 40px 0 16px', fontSize: '14px', fontWeight: 700, color: '#0D2B1F', outline: 'none', boxShadow: 'var(--clay-input)' }}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  style={{ position: 'absolute', right: '14px', background: 'none', border: 'none', color: '#74C69D', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                >
-                  {showPassword ? 'Hide' : 'Show'}
-                </button>
-              </div>
-            </div>
-
-            {error && (
-              <div style={{ fontSize: '13px', fontWeight: 700, color: '#ef4444', backgroundColor: 'rgba(239, 68, 68, 0.1)', padding: '10px 14px', borderRadius: '10px', textAlign: 'center' }}>
-                {error}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="btn-submit"
-              disabled={loading}
-              style={{
-                width: '100%',
-                height: '54px',
-                border: 'none',
-                borderRadius: '14px',
-                background: 'linear-gradient(180deg, #40916C 0%, #2D6A4F 100%)',
-                color: '#ffffff',
-                fontSize: '16px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                boxShadow: 'var(--clay-btn)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px'
-              }}
-            >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                mode === 'signup' ? 'Create Account →' : 'Sign In →'
-              )}
-            </button>
-          </form>
-
-          {/* DEMO BYPASS BUTTONS */}
-          {mode === 'login' && (
-            <div style={{ marginTop: '20px', borderTop: '2px solid #B7E4C7', paddingTop: '16px' }}>
-              <p style={{ fontSize: '11px', textAlign: 'center', color: '#2D6A4F', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '10px' }}>
-                Demo Sign In
-              </p>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('admin')}
-                  style={{ flex: 1, height: '36px', backgroundColor: '#ffffff', border: '1.5px solid #2D6A4F', borderRadius: '10px', fontSize: '12px', fontWeight: 800, color: '#2D6A4F', cursor: 'pointer' }}
-                >
-                  Admin
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleDemoLogin('user')}
-                  style={{ flex: 1, height: '36px', backgroundColor: '#ffffff', border: '1.5px solid #2D6A4F', borderRadius: '10px', fontSize: '12px', fontWeight: 800, color: '#2D6A4F', cursor: 'pointer' }}
-                >
-                  User
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div style={{ textAlign: 'center', marginTop: '24px', fontSize: '14px', fontWeight: 700, color: '#2D6A4F' }}>
-            {mode === 'signup' ? (
-              <>
-                Already have an account?{' '}
-                <button className="btn-toggle-state" onClick={() => handleStateToggle('login')} style={{ background: 'none', border: 'none', color: '#40916C', fontWeight: 800, cursor: 'pointer' }}>
-                  Login
-                </button>
-              </>
-            ) : (
-              <>
-                Don't have an account?{' '}
-                <button className="btn-toggle-state" onClick={() => handleStateToggle('signup')} style={{ background: 'none', border: 'none', color: '#40916C', fontWeight: 800, cursor: 'pointer' }}>
-                  Sign Up
-                </button>
-              </>
-            )}
-          </div>
-
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
 
