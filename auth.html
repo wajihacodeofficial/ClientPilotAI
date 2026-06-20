@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ClientPilot AI — Sign In & Sign Up</title>
+  <link rel="icon" type="image/png" href="/logo.png" />
+  
+  <!-- Nunito Font from Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    /* ==========================================
+       DESIGN TOKENS & CSS VARIABLES
+       ========================================== */
+    :root {
+      --forest-dark:    #0D2B1F;   /* deepest dark green */
+      --forest-mid:     #1A4A32;   /* card surfaces, panels */
+      --forest-med:     #2D6A4F;   /* secondary elements */
+      --forest-accent:  #40916C;   /* primary brand green */
+      --forest-bright:  #52B788;   /* hover states, highlights */
+      --forest-light:   #74C69D;   /* accents, icons */
+      --forest-pale:    #B7E4C7;   /* light fills, muted text on dark */
+      --mint-glow:      #D8F3DC;   /* very light backgrounds, pills */
+      --off-white:      #F0FFF4;   /* form card background */
+      --gold-accent:    #FFB347;   /* CTA button warm contrast pop */
+      --cream:          #FFF8F0;   /* warm highlight, logo text */
+      
+      --clay-bg-dark: inset 4px 4px 10px rgba(255, 255, 255, 0.08), 
+                      inset -4px -4px 10px rgba(0, 0, 0, 0.5), 
+                      0 10px 20px rgba(0, 0, 0, 0.4);
+                      
+      --clay-bg-light: inset 3px 3px 6px rgba(255, 255, 255, 0.9), 
+                       inset -3px -3px 6px rgba(45, 106, 79, 0.15), 
+                       0 8px 16px rgba(45, 106, 79, 0.1);
+                       
+      --clay-btn: inset 3px 3px 6px rgba(255, 255, 255, 0.4), 
+                  inset -3px -4px 6px rgba(0, 0, 0, 0.3), 
+                  0 6px 12px rgba(13, 43, 31, 0.25);
+                  
+      --clay-input: inset 2px 2px 4px rgba(0, 0, 0, 0.05),
+                    inset -2px -2px 4px rgba(255, 255, 255, 0.8);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    body {
+      background-color: var(--forest-dark);
+      color: var(--forest-dark);
+      min-height: 100vh;
+      overflow-x: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ==========================================
+       LAYOUT CONTAINER (Split-Panel viewport)
+       ========================================== */
+    .viewport-container {
+      display: flex;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background-color: var(--forest-mid);
+    }
+
+    /* LEFT PANEL (55% width) - Core branding / 3D illustration */
+    .left-panel {
+      width: 55%;
+      height: 100%;
+      background: linear-gradient(135deg, var(--forest-dark) 0%, var(--forest-mid) 100%);
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 48px;
+      overflow: hidden;
+      z-index: 10;
+      perspective: 1000px;
+    }
+
+    /* Background dots decoration */
+    .dots-overlay {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(var(--forest-med) 1.5px, transparent 1.5px);
+      background-size: 24px 24px;
+      opacity: 0.25;
+      pointer-events: none;
+    }
+
+    /* Logo structure */
+    .logo-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      z-index: 20;
+    }
+    
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--forest-bright), var(--forest-accent));
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: inset 2px 2px 4px rgba(255, 255, 255, 0.4), 
+                  0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    
+    .logo-text {
+      font-size: 22px;
+      font-weight: 900;
+      color: var(--cream);
+      letter-spacing: -0.5px;
+    }
+
+    .tagline {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--forest-light);
+      margin-top: 2px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Typography area with flip-up text morphing */
+    .hero-text-wrapper {
+      margin-top: 40px;
+      height: 140px;
+      position: relative;
+      z-index: 20;
+    }
+
+    .hero-title {
+      font-size: clamp(3rem, 5.5vw, 4.8rem);
+      font-weight: 900;
+      line-height: 0.95;
+      color: #ffffff;
+      letter-spacing: -2px;
+      text-transform: uppercase;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      transform-style: preserve-3d;
+      transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .hero-title.active {
+      opacity: 1;
+      transform: rotateX(0deg);
+      pointer-events: auto;
+    }
+    
+    .hero-title.inactive {
+      opacity: 0;
+      transform: rotateX(-90deg);
+    }
+
+    .hero-title span {
+      display: block;
+    }
+    
+    .hero-title .accent-text {
+      color: var(--forest-light);
+      text-shadow: 0 4px 12px rgba(82, 183, 136, 0.3);
+    }
+
+    /* Illustration container with mild 3D rotation */
+    .illustration-stage {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      z-index: 15;
+      transform-style: preserve-3d;
+      animation: sceneRotate 6s ease-in-out infinite;
+      will-change: transform;
+    }
+
+    .svg-scene {
+      width: 90%;
+      max-width: 480px;
+      height: auto;
+      filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.35));
+    }
+
+    /* Footer copy left panel */
+    .left-footer {
+      font-size: 13px;
+      color: var(--forest-pale);
+      z-index: 20;
+      font-weight: 600;
+    }
+
+    /* RIGHT PANEL (45% width) - Form viewport */
+    .right-panel {
+      width: 45%;
+      height: 100%;
+      background-color: var(--forest-mid);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px;
+      position: relative;
+    }
+
+    /* Form Container Card */
+    .form-container {
+      background-color: var(--off-white);
+      width: 100%;
+      max-width: 450px;
+      padding: 40px 36px;
+      border-radius: 28px;
+      box-shadow: inset 4px 4px 0px rgba(255, 255, 255, 0.9),
+                  0 20px 45px rgba(13, 43, 31, 0.45);
+      border: 3.5px solid var(--forest-med);
+      position: relative;
+      z-index: 30;
+      transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.4s ease;
+    }
+
+    .form-state {
+      display: none;
+    }
+
+    .form-state.active {
+      display: block;
+      animation: formEnter 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes formEnter {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .form-header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .form-title {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--forest-dark);
+      letter-spacing: -0.5px;
+      margin-bottom: 6px;
+    }
+
+    .form-subtitle {
+      font-size: 14px;
+      color: var(--forest-accent);
+      font-weight: 700;
+    }
+
+    /* Social Sign In Buttons */
+    .social-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .btn-social {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      height: 48px;
+      background-color: #ffffff;
+      border: 2px solid var(--forest-pale);
+      border-radius: 14px;
+      color: var(--forest-dark);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: var(--clay-bg-light);
+      transition: all 0.2s ease;
+    }
+
+    .btn-social:hover {
+      border-color: var(--forest-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(45, 106, 79, 0.15);
+    }
+    
+    .btn-social:active {
+      transform: translateY(0);
+    }
+
+    .btn-social svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: var(--forest-accent);
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      margin-bottom: 20px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      border-bottom: 2px solid var(--forest-pale);
+    }
+
+    .divider:not(:empty)::before {
+      margin-right: 12px;
+    }
+
+    .divider:not(:empty)::after {
+      margin-left: 12px;
+    }
+
+    /* Form Fields */
+    .input-group {
+      margin-bottom: 18px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .input-label {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--forest-dark);
+      padding-left: 4px;
+    }
+
+    .input-wrapper {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .form-input {
+      width: 100%;
+      height: 52px;
+      background-color: #ffffff;
+      border: 2px solid var(--forest-pale);
+      border-radius: 14px;
+      padding: 0 16px 0 46px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--forest-dark);
+      outline: none;
+      box-shadow: var(--clay-input);
+      transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .form-input::placeholder {
+      color: var(--forest-accent);
+      opacity: 0.45;
+      font-weight: 600;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 16px;
+      width: 20px;
+      height: 20px;
+      color: var(--forest-light);
+      pointer-events: none;
+      transition: color 0.2s ease;
+    }
+
+    .btn-toggle-password {
+      position: absolute;
+      right: 16px;
+      background: none;
+      border: none;
+      color: var(--forest-light);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      width: 20px;
+      height: 20px;
+      transition: color 0.2s ease;
+    }
+    
+    .btn-toggle-password:hover {
+      color: var(--forest-accent);
+    }
+
+    /* Focus states */
+    .form-input:focus {
+      border-color: var(--forest-accent);
+      background-color: #ffffff;
+      transform: scale(1.01);
+      box-shadow: inset 1px 1px 3px rgba(0, 0, 0, 0.05),
+                  0 0 0 4px rgba(64, 145, 108, 0.2);
+    }
+
+    .form-input:focus + .input-icon {
+      color: var(--forest-accent);
+    }
+
+    /* Forgot Password Link in field */
+    .forgot-link {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--forest-accent);
+      text-decoration: none;
+      align-self: flex-end;
+      margin-top: -2px;
+      transition: color 0.2s ease;
+    }
+    .forgot-link:hover {
+      color: var(--forest-bright);
+      text-decoration: underline;
+    }
+
+    /* Custom Checkbox Row */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 22px;
+    }
+
+    .custom-checkbox-container {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--forest-med);
+    }
+
+    .custom-checkbox-container input {
+      position: absolute;
+      opacity: 0;
+      cursor: pointer;
+      height: 0;
+      width: 0;
+    }
+
+    .checkmark {
+      width: 22px;
+      height: 22px;
+      background-color: #ffffff;
+      border: 2px solid var(--forest-pale);
+      border-radius: 7px;
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: var(--clay-input);
+      transition: all 0.2s ease;
+    }
+
+    .custom-checkbox-container:hover input ~ .checkmark {
+      border-color: var(--forest-accent);
+    }
+
+    .custom-checkbox-container input:checked ~ .checkmark {
+      background-color: var(--forest-accent);
+      border-color: var(--forest-accent);
+      box-shadow: inset 1px 1px 3px rgba(255, 255, 255, 0.4), 0 3px 6px rgba(64, 145, 108, 0.2);
+    }
+
+    .checkmark::after {
+      content: "";
+      display: none;
+      width: 5px;
+      height: 10px;
+      border: solid white;
+      border-width: 0 2.5px 2.5px 0;
+      transform: rotate(45deg) translate(-1px, -1px);
+    }
+
+    .custom-checkbox-container input:checked ~ .checkmark::after {
+      display: block;
+    }
+
+    /* Submit CTA button */
+    .btn-submit {
+      width: 100%;
+      height: 54px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(180deg, var(--forest-accent) 0%, var(--forest-med) 100%);
+      color: #ffffff;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: var(--clay-btn);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .btn-submit:hover {
+      background: linear-gradient(180deg, var(--forest-bright) 0%, var(--forest-accent) 100%);
+      transform: scale(1.02);
+      box-shadow: inset 3px 3px 6px rgba(255, 255, 255, 0.4), 
+                  inset -3px -4px 6px rgba(0, 0, 0, 0.3), 
+                  0 10px 20px rgba(13, 43, 31, 0.3);
+    }
+
+    .btn-submit:active {
+      transform: scale(0.98);
+      box-shadow: inset 2px 2px 6px rgba(0, 0, 0, 0.4), 
+                  0 2px 4px rgba(13, 43, 31, 0.1);
+    }
+
+    /* Form Footer links */
+    .form-footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--forest-med);
+    }
+
+    .btn-toggle-state {
+      background: none;
+      border: none;
+      color: var(--forest-accent);
+      font-weight: 800;
+      cursor: pointer;
+      padding: 0;
+      font-size: 14px;
+      text-decoration: none;
+      transition: color 0.2s ease;
+    }
+    
+    .btn-toggle-state:hover {
+      color: var(--forest-bright);
+      text-decoration: underline;
+    }
+
+    /* Hanging Pointer Hand container */
+    .pointer-hand-container {
+      position: absolute;
+      right: -80px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 140px;
+      height: 140px;
+      z-index: 100;
+      pointer-events: none;
+      transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    /* Validation Shake */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+
+    .shake {
+      animation: shake 0.4s ease-in-out;
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15) !important;
+    }
+
+    /* ==========================================
+       SVG 3D ILLUSTRATION KEYFRAMES
+       ========================================== */
+    @keyframes sceneRotate {
+      0% { transform: rotateY(0deg) rotateX(0deg); }
+      50% { transform: rotateY(3deg) rotateX(1deg); }
+      100% { transform: rotateY(0deg) rotateX(0deg); }
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(3deg); }
+    }
+
+    @keyframes floatMedium {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-12px) rotate(-4deg); }
+    }
+
+    @keyframes floatFast {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes handNudge {
+      0%, 100% { transform: translateX(0px); }
+      50% { transform: translateX(-15px); }
+    }
+
+    .svg-float-torus {
+      animation: floatSlow 3s ease-in-out infinite;
+      transform-origin: center;
+    }
+
+    .svg-float-cyan {
+      animation: floatMedium 3.5s ease-in-out infinite;
+      animation-delay: 1s;
+      transform-origin: center;
+    }
+
+    .svg-float-pink {
+      animation: floatFast 2.5s ease-in-out infinite;
+      animation-delay: 0.5s;
+      transform-origin: center;
+    }
+
+    .svg-character {
+      animation: floatFast 4s ease-in-out infinite;
+      transform-origin: bottom center;
+    }
+
+    .svg-hand {
+      animation: handNudge 3s ease-in-out infinite;
+    }
+
+    /* Prefers Reduced Motion override */
+    @media (prefers-reduced-motion: reduce) {
+      .svg-float-torus,
+      .svg-float-cyan,
+      .svg-float-pink,
+      .svg-character,
+      .svg-hand,
+      .illustration-stage {
+        animation: none !important;
+        transform: none !important;
+      }
+    }
+
+    /* ==========================================
+       RESPONSIVE DESIGN (768px Breakpoint)
+       ========================================== */
+    @media (max-width: 992px) {
+      .left-panel {
+        width: 50%;
+      }
+      .right-panel {
+        width: 50%;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .viewport-container {
+        flex-direction: column;
+        overflow-y: auto;
+        height: auto;
+        min-height: 100vh;
+      }
+
+      .left-panel {
+        width: 100%;
+        height: 240px;
+        min-height: 240px;
+        padding: 24px;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo-container {
+        align-self: flex-start;
+      }
+
+      .hero-text-wrapper {
+        margin-top: 0;
+        height: auto;
+        width: auto;
+        flex: 1;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      .hero-title {
+        position: relative;
+        font-size: 2.2rem;
+        text-align: center;
+      }
+
+      .illustration-stage {
+        display: none; /* Hide 3D graphic on mobile to conserve space */
+      }
+
+      .left-footer {
+        display: none;
+      }
+
+      .right-panel {
+        width: 100%;
+        padding: 24px;
+        background-color: var(--forest-dark);
+        flex: 1;
+      }
+
+      .form-container {
+        padding: 30px 24px;
+        border-radius: 24px;
+        max-width: 480px;
+        margin: 0 auto;
+      }
+
+      .pointer-hand-container {
+        display: none; /* Hide hand pointer on mobile */
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="viewport-container">
+    
+    <!-- LEFT PANEL -->
+    <div class="left-panel">
+      <div class="dots-overlay"></div>
+      
+      <!-- Top Branding -->
+      <div class="logo-container">
+        <img src="/logo.png" alt="ClientPilot AI Logo" class="logo-icon" style="object-cover" />
+        <div>
+          <div class="logo-text">ClientPilot AI</div>
+          <div class="tagline">Acquire High-Value Clients on Autopilot.</div>
+        </div>
+      </div>
+
+      <!-- Morphing Hero Text -->
+      <div class="hero-text-wrapper">
+        <h1 class="hero-title active" id="title-signup">
+          <span>Sign Up</span>
+          <span class="accent-text">Now!</span>
+        </h1>
+        <h1 class="hero-title inactive" id="title-signin">
+          <span>Sign In</span>
+          <span class="accent-text">Now!</span>
+        </h1>
+      </div>
+
+      <!-- Centered 3D Clay Scene -->
+      <div class="illustration-stage">
+        <svg class="svg-scene" viewBox="0 0 500 500" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <!-- Drop Shadow Filter -->
+            <filter id="clayShadow" x="-20%" y="-20%" width="150%" height="150%">
+              <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#05140e" flood-opacity="0.5" />
+            </filter>
+            
+            <!-- Torus Shadow Filter (Inner shadow mimic) -->
+            <filter id="innerGlow" x="-20%" y="-20%" width="140%" height="140%">
+              <feGaussianBlur stdDeviation="5" result="blur" />
+              <feComposite in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="shadowDiff" />
+              <feFlood flood-color="#000" flood-opacity="0.3" />
+              <feComposite in2="shadowDiff" operator="in" />
+              <feComposite in2="SourceGraphic" operator="over" />
+            </filter>
+
+            <!-- Gradients -->
+            <linearGradient id="portalGrad" x1="100" y1="80" x2="100" y2="380" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#40916C" />
+              <stop offset="100%" stop-color="#2D6A4F" />
+            </linearGradient>
+
+            <linearGradient id="torusGrad" x1="60" y1="80" x2="180" y2="180" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FFD166" />
+              <stop offset="50%" stop-color="#FFB347" />
+              <stop offset="100%" stop-color="#D48A1D" />
+            </linearGradient>
+            
+            <linearGradient id="pinkGrad" x1="320" y1="310" x2="380" y2="350" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#FF85A2" />
+              <stop offset="100%" stop-color="#FF6B9D" />
+            </linearGradient>
+
+            <linearGradient id="cyanGrad" x1="300" y1="200" x2="420" y2="240" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#4EECD6" />
+              <stop offset="100%" stop-color="#2EC4B6" />
+            </linearGradient>
+          </defs>
+
+          <!-- Ground Plane / Shadow -->
+          <ellipse cx="250" cy="420" rx="180" ry="24" fill="#05140E" opacity="0.6" filter="blur(8px)" />
+
+          <!-- ELEMENT 5: Clay ground blobs -->
+          <path d="M 120 425 Q 160 395 210 425 Z" fill="#1A4A32" filter="url(#clayShadow)" />
+          <path d="M 280 430 Q 320 400 370 428 Z" fill="#2D6A4F" filter="url(#clayShadow)" />
+          <path d="M 210 435 Q 240 415 270 435 Z" fill="#B7E4C7" filter="url(#clayShadow)" />
+
+          <!-- ELEMENT 7: Tropical plant behind arch -->
+          <g filter="url(#clayShadow)">
+            <!-- Stem -->
+            <path d="M 330 260 Q 360 210 390 220" stroke="#1A4A32" stroke-width="6" stroke-linecap="round" fill="none" />
+            <!-- Leaves -->
+            <path d="M 360 220 Q 390 190 380 170 Q 350 190 360 220 Z" fill="#52B788" />
+            <path d="M 345 235 Q 380 215 385 195 Q 355 210 345 235 Z" fill="#40916C" />
+            <path d="M 370 215 Q 410 210 405 190 Q 380 195 370 215 Z" fill="#52B788" />
+            <path d="M 385 220 Q 420 230 425 215 Q 395 215 385 220 Z" fill="#2D6A4F" />
+          </g>
+
+          <!-- ELEMENT 1: Tall forest green arch/portal -->
+          <rect x="150" y="100" width="180" height="300" rx="90" fill="url(#portalGrad)" filter="url(#clayShadow)" />
+          <!-- Inner portal recession -->
+          <rect x="170" y="120" width="140" height="270" rx="70" fill="#0D2B1F" opacity="0.85" />
+
+          <!-- ELEMENT 2: Floating torus/ring shape -->
+          <g class="svg-float-torus" filter="url(#clayShadow)">
+            <path d="M 120 100 C 86.86 100 60 126.86 60 160 C 60 193.14 86.86 220 120 220 C 153.14 220 180 193.14 180 160 C 180 126.86 153.14 100 120 100 Z M 120 135 C 133.81 135 145 146.19 145 160 C 145 173.81 133.81 185 120 185 C 106.19 185 95 173.81 95 160 C 95 146.19 106.19 135 120 135 Z" 
+                  fill="url(#torusGrad)" transform="rotate(20 120 160)" />
+          </g>
+
+          <!-- ELEMENT 4 (Part 1): Floating cyan cylinder -->
+          <g class="svg-float-cyan" filter="url(#clayShadow)">
+            <!-- Top Cap -->
+            <ellipse cx="370" cy="180" rx="25" ry="12" fill="#4EECD6" />
+            <!-- Body -->
+            <path d="M 345 180 L 345 220 A 25 12 0 0 0 395 220 L 395 180 Z" fill="url(#cyanGrad)" />
+            <!-- Bottom highlights -->
+            <ellipse cx="370" cy="220" rx="25" ry="12" fill="#2EC4B6" opacity="0.3" />
+          </g>
+
+          <!-- ELEMENT 3: Chunky bar chart (3 bars) -->
+          <g filter="url(#clayShadow)">
+            <!-- Bar 1: Deep Teal (Short) -->
+            <rect x="180" y="320" width="30" height="70" rx="15" fill="#0F6E56" />
+            <rect x="180" y="320" width="30" height="20" rx="15" fill="#148F70" />
+            
+            <!-- Bar 2: Forest Bright (Tallest) -->
+            <rect x="225" y="250" width="30" height="140" rx="15" fill="#52B788" />
+            <rect x="225" y="250" width="30" height="20" rx="15" fill="#74C69D" />
+
+            <!-- Bar 3: Mint (Medium) -->
+            <rect x="270" y="290" width="30" height="100" rx="15" fill="#74C69D" />
+            <rect x="270" y="290" width="30" height="20" rx="15" fill="#B7E4C7" />
+          </g>
+
+          <!-- ELEMENT 6: Clay Character -->
+          <g class="svg-character" filter="url(#clayShadow)">
+            <!-- Body Blob -->
+            <rect x="220" y="365" width="44" height="45" rx="20" fill="#9B8EC4" />
+            <!-- Head -->
+            <circle cx="242" cy="345" r="22" fill="#9B8EC4" />
+            <!-- Head Highlight -->
+            <circle cx="236" cy="336" r="6" fill="#FFF" opacity="0.3" />
+            <!-- Left Arm Stub -->
+            <rect x="208" y="372" width="14" height="16" rx="7" fill="#897BB8" transform="rotate(-25 208 372)" />
+            <!-- Right Arm Stub -->
+            <rect x="260" y="372" width="14" height="16" rx="7" fill="#897BB8" transform="rotate(25 260 372)" />
+            <!-- Eyes -->
+            <circle cx="236" cy="345" r="2.5" fill="#0D2B1F" />
+            <circle cx="248" cy="345" r="2.5" fill="#0D2B1F" />
+            <!-- Smile -->
+            <path d="M 239 350 Q 242 353 245 350" stroke="#0D2B1F" stroke-width="2" stroke-linecap="round" fill="none" />
+          </g>
+
+          <!-- ELEMENT 4 (Part 2): Floating magenta pill -->
+          <g class="svg-float-pink" filter="url(#clayShadow)">
+            <rect x="100" y="280" width="22" height="48" rx="11" fill="url(#pinkGrad)" transform="rotate(-40 100 280)" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- Bottom footer left panel -->
+      <div class="left-footer">
+        © 2026 GrowthVault Inc. Secure & private.
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL -->
+    <div class="right-panel">
+      
+      <!-- HANGING HAND/POINTER (ELEMENT 8) -->
+      <!-- Reaching in from right edge pointing at the card -->
+      <div class="pointer-hand-container svg-hand" id="pointer-hand">
+        <svg width="140" height="140" viewBox="0 0 140 140" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <g filter="drop-shadow(-5px 10px 10px rgba(0,0,0,0.3))">
+            <!-- Arm/Wrist -->
+            <rect x="40" y="55" width="110" height="36" rx="18" fill="#C8956C" />
+            <rect x="40" y="55" width="110" height="12" rx="6" fill="#DDB088" opacity="0.4" />
+            
+            <!-- Sleeve (forest light color) -->
+            <rect x="110" y="47" width="40" height="52" rx="10" fill="#40916C" />
+            <rect x="110" y="47" width="10" height="52" rx="5" fill="#52B788" />
+
+            <!-- Pointing Finger -->
+            <rect x="5" y="45" width="45" height="15" rx="7.5" fill="#C8956C" />
+            <!-- Folded Fingers -->
+            <rect x="25" y="58" width="30" height="13" rx="6.5" fill="#B48259" />
+            <rect x="28" y="69" width="28" height="13" rx="6.5" fill="#B48259" />
+            <rect x="33" y="80" width="25" height="13" rx="6.5" fill="#B48259" />
+            <!-- Thumb -->
+            <rect x="40" y="38" width="18" height="24" rx="9" fill="#DDB088" transform="rotate(-30 40 38)" />
+          </g>
+        </svg>
+      </div>
+
+      <!-- FORM CARD CONTAINER -->
+      <div class="form-container" id="form-card">
+        
+        <!-- SIGN UP STATE -->
+        <div class="form-state active" id="state-signup">
+          <div class="form-header">
+            <h2 class="form-title">Create Account</h2>
+            <p class="form-subtitle">Unlock your predictive client acquisition portal</p>
+          </div>
+
+          <div class="social-buttons">
+            <button class="btn-social" type="button">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+              </svg>
+              Google
+            </button>
+            <button class="btn-social" type="button">
+              <svg viewBox="0 0 24 24" fill="#1877F2" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Facebook
+            </button>
+          </div>
+
+          <div class="divider">OR</div>
+
+          <form id="signup-form" novalidate>
+            <div class="input-group">
+              <label class="input-label" for="signup-name">Full Name</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <input class="form-input" type="text" id="signup-name" placeholder="John Doe" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="signup-email">Email Address</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <input class="form-input" type="email" id="signup-email" placeholder="john@example.com" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label class="input-label" for="signup-password">Password</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <input class="form-input" type="password" id="signup-password" placeholder="••••••••" required>
+                <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('signup-password')">
+                  <!-- Eye Icon -->
+                  <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              Create Account
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </form>
+
+          <div class="form-footer">
+            Already have an account? 
+            <button class="btn-toggle-state" onclick="switchState('signin')">Login</button>
+          </div>
+        </div>
+
+        <!-- SIGN IN STATE -->
+        <div class="form-state" id="state-signin">
+          <div class="form-header">
+            <h2 class="form-title">Welcome Back</h2>
+            <p class="form-subtitle">Enter credentials to pilot your acquisition</p>
+          </div>
+
+          <div class="social-buttons">
+            <button class="btn-social" type="button">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+              </svg>
+              Google
+            </button>
+            <button class="btn-social" type="button">
+              <svg viewBox="0 0 24 24" fill="#1877F2" xmlns="http://www.w3.org/2000/svg">
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+              </svg>
+              Facebook
+            </button>
+          </div>
+
+          <div class="divider">OR</div>
+
+          <form id="signin-form" novalidate>
+            <div class="input-group">
+              <label class="input-label" for="signin-email">Email Address</label>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                  <polyline points="22,6 12,13 2,6"></polyline>
+                </svg>
+                <input class="form-input" type="email" id="signin-email" placeholder="john@example.com" required>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <label class="input-label" for="signin-password">Password</label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+              </div>
+              <div class="input-wrapper">
+                <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <input class="form-input" type="password" id="signin-password" placeholder="••••••••" required>
+                <button type="button" class="btn-toggle-password" onclick="togglePasswordVisibility('signin-password')">
+                  <!-- Eye Icon -->
+                  <svg class="eye-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                </button>
+              </div>
+            </div>
+
+            <div class="checkbox-row">
+              <label class="custom-checkbox-container">
+                Remember me
+                <input type="checkbox" id="signin-remember">
+                <span class="checkmark"></span>
+              </label>
+            </div>
+
+            <button type="submit" class="btn-submit">
+              Sign In
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+          </form>
+
+          <div class="form-footer">
+            Don't have an account? 
+            <button class="btn-toggle-state" onclick="switchState('signup')">Sign Up</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==========================================
+       JAVASCRIPT CONTROL LOGIC
+       ========================================== -->
+  <script>
+    // Toggle active state between signup and signin
+    function switchState(targetState) {
+      const card = document.getElementById('form-card');
+      const titleSignUp = document.getElementById('title-signup');
+      const titleSignIn = document.getElementById('title-signin');
+      const stateSignUp = document.getElementById('state-signup');
+      const stateSignIn = document.getElementById('state-signin');
+      const pointerHand = document.getElementById('pointer-hand');
+
+      // Add simple transition scale-down effect to card
+      card.style.transform = 'scale(0.95)';
+      card.style.opacity = '0.5';
+
+      setTimeout(() => {
+        if (targetState === 'signin') {
+          // Change hero text
+          titleSignUp.classList.remove('active');
+          titleSignUp.classList.add('inactive');
+          titleSignIn.classList.remove('inactive');
+          titleSignIn.classList.add('active');
+
+          // Change form state visible
+          stateSignUp.classList.remove('active');
+          stateSignIn.classList.add('active');
+          
+          // Nudge hanging hand slightly
+          pointerHand.style.transform = 'translateY(-40%) scale(0.95)';
+        } else {
+          // Change hero text
+          titleSignIn.classList.remove('active');
+          titleSignIn.classList.add('inactive');
+          titleSignUp.classList.remove('inactive');
+          titleSignUp.classList.add('active');
+
+          // Change form state visible
+          stateSignIn.classList.remove('active');
+          stateSignUp.classList.add('active');
+
+          // Reset hanging hand
+          pointerHand.style.transform = 'translateY(-50%) scale(1)';
+        }
+
+        // Restore card scale
+        card.style.transform = 'scale(1)';
+        card.style.opacity = '1';
+      }, 250);
+    }
+
+    // Toggle Password Visibility
+    function togglePasswordVisibility(fieldId) {
+      const passwordField = document.getElementById(fieldId);
+      const toggleButton = passwordField.nextElementSibling;
+      const eyeIcon = toggleButton.querySelector('.eye-icon');
+
+      if (passwordField.type === 'password') {
+        passwordField.type = 'text';
+        // Morph the eye icon slightly by changing the paths
+        eyeIcon.innerHTML = `
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+          <line x1="1" y1="1" x2="23" y2="23"></line>
+        `;
+      } else {
+        passwordField.type = 'password';
+        eyeIcon.innerHTML = `
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+          <circle cx="12" cy="12" r="3"></circle>
+        `;
+      }
+    }
+
+    // Basic Form Validations with Shake effect
+    document.getElementById('signup-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      let hasError = false;
+      const inputs = this.querySelectorAll('.form-input');
+
+      inputs.forEach(input => {
+        if (!input.value.trim() || (input.type === 'email' && !validateEmail(input.value))) {
+          hasError = true;
+          triggerShake(input);
+        }
+      });
+
+      if (!hasError) {
+        alert('GrowthVault Sign Up Successful! Welcome aboard.');
+      }
+    });
+
+    document.getElementById('signin-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      let hasError = false;
+      const inputs = this.querySelectorAll('.form-input');
+
+      inputs.forEach(input => {
+        if (!input.value.trim() || (input.type === 'email' && !validateEmail(input.value))) {
+          hasError = true;
+          triggerShake(input);
+        }
+      });
+
+      if (!hasError) {
+        alert('GrowthVault Sign In Successful! Welcome back.');
+      }
+    });
+
+    function validateEmail(email) {
+      const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return re.test(String(email).toLowerCase());
+    }
+
+    function triggerShake(element) {
+      element.classList.add('shake');
+      setTimeout(() => {
+        element.classList.remove('shake');
+      }, 400);
+    }
+  </script>
+</body>
+</html>

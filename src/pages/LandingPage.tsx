@@ -187,12 +187,11 @@ export function LandingPage() {
       <nav className={`fixed top-0 left-0 right-0 h-20 z-50 transition-all duration-300 flex items-center ${scrolled ? 'bg-[#f8fafc]/70 backdrop-blur-md shadow-md h-[70px]' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-6 w-full flex justify-between items-center">
           <Link to="/" className="flex items-center gap-2.5 text-lg font-extrabold text-[#0f172a] no-underline">
-            <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#d1fae5] to-[#a7f3d0] clay-shadow-mint flex items-center justify-center">
-              <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#059669"/>
-                <circle cx="12" cy="12" r="3" fill="#ffffff" />
-              </svg>
-            </div>
+            <img
+              src="/logo.png"
+              alt="ClientPilot AI Logo"
+              className="w-10 h-10 rounded-xl object-cover clay-shadow-mint"
+            />
             <span>ClientPilot<span className="text-[#10b981]">AI</span></span>
           </Link>
           
@@ -606,12 +605,11 @@ export function LandingPage() {
             
             <div className="flex flex-col gap-4">
               <Link to="/" className="flex items-center gap-2.5 text-lg font-extrabold text-[#0f172a] no-underline">
-                <div className="w-10 h-10 rounded-xl bg-linear-to-br from-[#d1fae5] to-[#a7f3d0] clay-shadow-mint flex items-center justify-center">
-                  <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" fill="#059669"/>
-                    <circle cx="12" cy="12" r="3" fill="#ffffff" />
-                  </svg>
-                </div>
+                <img
+                  src="/logo.png"
+                  alt="ClientPilot AI Logo"
+                  className="w-10 h-10 rounded-xl object-cover clay-shadow-mint"
+                />
                 <span>ClientPilot<span className="text-[#10b981]">AI</span></span>
               </Link>
               <p className="text-[#1e293b] text-sm max-w-[320px]">
