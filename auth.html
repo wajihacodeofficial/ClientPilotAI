@@ -590,6 +590,12 @@
       box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.15) !important;
     }
 
+    .flex-between-center {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
     /* ==========================================
        SVG 3D ILLUSTRATION KEYFRAMES
        ========================================== */
@@ -746,7 +752,7 @@
       
       <!-- Top Branding -->
       <div class="logo-container">
-        <img src="/logo.png" alt="ClientPilot AI Logo" class="logo-icon" style="object-cover" />
+        <img src="/logo.png" alt="ClientPilot AI Logo" class="logo-icon" style="object-fit: cover;" />
         <div>
           <div class="logo-text">ClientPilot AI</div>
           <div class="tagline">Acquire High-Value Clients on Autopilot.</div>
@@ -1030,7 +1036,7 @@
             </div>
 
             <div class="input-group">
-              <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div class="flex-between-center">
                 <label class="input-label" for="signin-password">Password</label>
                 <a href="#" class="forgot-link">Forgot password?</a>
               </div>
