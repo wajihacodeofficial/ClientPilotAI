@@ -39,8 +39,8 @@ router.get('/', async (req, res) => {
 
     if (error) throw error;
     res.json(leads);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
   }
 });
 
@@ -103,8 +103,8 @@ router.post('/discover', async (req, res) => {
     }
 
     res.json({ leads: newLeads, count: newLeads.length });
-  } catch (err: any) {
-    res.status(400).json({ error: err.message });
+  } catch (err: unknown) {
+    res.status(400).json({ error: err instanceof Error ? err.message : 'Bad Request' });
   }
 });
 
@@ -121,7 +121,7 @@ async function scoreLeadAsync(leadId: string, name: string, category: string, ad
       market_density: score.market_density,
       competitor_presence: score.competitor_presence,
       ai_reasoning: score.ai_reasoning,
-      model_used: 'gpt-4o-mini'
+      model_used: 'gpt-5.5'
     }, { onConflict: 'lead_id' });
   }
 }
@@ -140,12 +140,12 @@ router.post('/:id/score', async (req, res) => {
     const { data: updated } = await supabaseAdmin.from('lead_scores').upsert({
       lead_id: id,
       ...score,
-      model_used: 'gpt-4o-mini'
+      model_used: 'gpt-5.5'
     }, { onConflict: 'lead_id' }).select().single();
 
     res.json(updated);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
   }
 });
 
@@ -171,8 +171,8 @@ router.post('/:id/outreach', async (req, res) => {
     }).select().single();
 
     res.json(saved);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
   }
 });
 
@@ -184,6 +184,9 @@ router.patch('/:id/stage', async (req, res) => {
     const user = req.user;
 
     const { data: profile } = await supabaseAdmin.from('profiles').select('workspace_id').eq('id', user.sub).single();
+    if (!profile?.workspace_id) {
+      return res.status(403).json({ error: 'No workspace found' });
+    }
 
     // Insert pipeline history
     const { data: history, error } = await supabaseAdmin.from('pipeline_stages').insert({
@@ -195,8 +198,8 @@ router.patch('/:id/stage', async (req, res) => {
 
     if (error) throw error;
     res.json(history);
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
   }
 });
 

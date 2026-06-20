@@ -1,16 +1,14 @@
-import { useEffect, useState } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import {
   X, MapPin, Phone, Globe, ExternalLink, Sparkles, RefreshCw,
-  Send, Save, CheckCircle2, ChevronRight,
+  Send, Save, CheckCircle2,
 } from 'lucide-react'
 import {
   Button, Badge, Sheet, Skeleton, Separator, Textarea, Progress,
 } from '@/components/ui'
-import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from 'recharts'
 import { generateOutreach, sendOutreach, saveDraft, updateLeadStage } from '@/lib/mockApi'
 import { useAppStore } from '@/store/useAppStore'
-import { mockLeads } from '@/data/mockLeads'
 import type { Lead, OutreachMessage, PipelineStage } from '@/types'
 import { cn, getCategoryLabel, getScoreColor, getPipelineLabel } from '@/lib/utils'
 
@@ -63,13 +61,6 @@ function StageStepper({ current, onAdvance }: { current: PipelineStage; onAdvanc
 // Score Breakdown Radar + Bars
 // ============================================================
 function ScoreBreakdownSection({ lead }: { lead: Lead }) {
-  const radarData = [
-    { subject: 'Digital Gap', value: lead.scoreBreakdown.digitalPresenceGap * 10 },
-    { subject: 'Category Fit', value: lead.scoreBreakdown.categoryFit * 10 },
-    { subject: 'Reviews', value: lead.scoreBreakdown.reviewActivity * 10 },
-    { subject: 'Market', value: lead.scoreBreakdown.marketDensity * 10 },
-    { subject: 'Competition', value: lead.scoreBreakdown.competitorPresence * 10 },
-  ]
 
   const barItems = [
     { label: 'Digital Presence Gap', value: lead.scoreBreakdown.digitalPresenceGap, max: 10 },
@@ -143,7 +134,18 @@ function AIAnalysisSection({ text }: { text: string }) {
 // ============================================================
 function OutreachSection({ lead }: { lead: Lead }) {
   const updateLeadOutreachStore = useAppStore((s) => s.updateLeadOutreach)
-  const [currentMsg, setCurrentMsg] = useState<OutreachMessage>(lead.outreachMessages[0])
+  
+  const defaultMsg: OutreachMessage = useMemo(() => ({
+    id: 'default',
+    subject: `Digital Transformation for ${lead.name}`,
+    body: 'No message generated yet. Click "Regenerate with AI" to create one.',
+    status: 'draft',
+    createdAt: new Date().toISOString()
+  }), [lead.name])
+
+  const [currentMsg, setCurrentMsg] = useState<OutreachMessage>(
+    lead.outreachMessages?.[0] || defaultMsg
+  )
   const [editedBody, setEditedBody] = useState(currentMsg.body)
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isSending, setIsSending] = useState(false)
@@ -152,24 +154,46 @@ function OutreachSection({ lead }: { lead: Lead }) {
 
   const handleRegenerate = async () => {
     setIsRegenerating(true)
-    const msg = await generateOutreach(lead.id)
-    setCurrentMsg(msg)
-    setEditedBody(msg.body)
-    setIsRegenerating(false)
+    try {
+      const msg = await generateOutreach(lead.id)
+      setCurrentMsg(msg)
+      setEditedBody(msg.body)
+      updateLeadOutreachStore(lead.id, msg)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsRegenerating(false)
+    }
   }
 
   const handleSend = async () => {
     setIsSending(true)
-    await sendOutreach(lead.id, { ...currentMsg, body: editedBody })
-    setIsSending(false)
-    setSentSuccess(true)
-    setTimeout(() => setSentSuccess(false), 3000)
+    try {
+      const updatedMsg = { ...currentMsg, body: editedBody, status: 'sent' as const }
+      await sendOutreach(lead.id, updatedMsg)
+      updateLeadOutreachStore(lead.id, updatedMsg)
+      setCurrentMsg(updatedMsg)
+      setSentSuccess(true)
+      setTimeout(() => setSentSuccess(false), 3000)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsSending(false)
+    }
   }
 
   const handleSaveDraft = async () => {
     setIsSaving(true)
-    await saveDraft(lead.id, { ...currentMsg, body: editedBody })
-    setIsSaving(false)
+    try {
+      const updatedMsg = { ...currentMsg, body: editedBody, status: 'draft' as const }
+      await saveDraft(lead.id, updatedMsg)
+      updateLeadOutreachStore(lead.id, updatedMsg)
+      setCurrentMsg(updatedMsg)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (
@@ -230,26 +254,14 @@ export function LeadDetailPanel() {
   const selectedLeadId = useAppStore((s) => s.selectedLeadId)
   const setSelectedLeadId = useAppStore((s) => s.setSelectedLeadId)
   const updateLeadStageStore = useAppStore((s) => s.updateLeadStage)
+  const leads = useAppStore((s) => s.leads)
 
-  const [lead, setLead] = useState<Lead | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [stageChanging, setStageChanging] = useState(false)
-
-  useEffect(() => {
-    if (!selectedLeadId) { setLead(null); return }
-    setLoading(true)
-    // Find lead from mock data directly
-    const found = mockLeads.find((l) => l.id === selectedLeadId) ?? null
-    setTimeout(() => { setLead(found); setLoading(false) }, 400)
-  }, [selectedLeadId])
+  const lead = useMemo(() => leads.find((l) => l.id === selectedLeadId) ?? null, [leads, selectedLeadId])
 
   const handleStageChange = async (stage: PipelineStage) => {
     if (!lead) return
-    setStageChanging(true)
     await updateLeadStage(lead.id, stage)
     updateLeadStageStore(lead.id, stage)
-    setLead((prev) => prev ? { ...prev, pipelineStage: stage } : prev)
-    setStageChanging(false)
   }
 
   const CAT_EMOJI: Record<string, string> = {
@@ -263,7 +275,7 @@ export function LeadDetailPanel() {
     <Sheet open={!!selectedLeadId} onClose={() => setSelectedLeadId(null)} width="w-[540px]">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-5 py-4 flex items-start justify-between">
-        {loading || !lead ? (
+        {!lead ? (
           <div className="space-y-2">
             <Skeleton className="h-5 w-48" />
             <Skeleton className="h-4 w-32" />
@@ -289,13 +301,11 @@ export function LeadDetailPanel() {
 
       {/* Content */}
       <div className="p-5 space-y-5">
-        {loading && (
+        {!lead ? (
           <div className="space-y-4">
             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}
           </div>
-        )}
-
-        {!loading && lead && (
+        ) : (
           <>
             {/* Contact info */}
             <div className="space-y-1.5">
@@ -346,7 +356,7 @@ export function LeadDetailPanel() {
             <Separator />
 
             {/* Outreach */}
-            <OutreachSection lead={lead} />
+            <OutreachSection key={lead.id} lead={lead} />
           </>
         )}
       </div>

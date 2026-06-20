@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Sidebar } from './Sidebar'
 import { TopBar } from './TopBar'
+import { LeadDetailPanel } from '../leads/LeadDetailPanel'
 import { useAppStore } from '@/store/useAppStore'
 
 export function AppShell() {
@@ -21,6 +22,7 @@ export function AppShell() {
           <Outlet />
         </main>
       </div>
+      <LeadDetailPanel />
     </div>
   )
 }

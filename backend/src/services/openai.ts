@@ -1,12 +1,15 @@
 import OpenAI from 'openai';
 import dotenv from 'dotenv';
 import { z } from 'zod';
-import { zodResponseFormat } from 'openai/helpers/zod';
 
 dotenv.config();
 
+if (!process.env.OPENAI_API_KEY) {
+  console.warn('[Warning] Missing OPENAI_API_KEY in environment variables. AI operations will fail.');
+}
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY || 'placeholder-openai-key',
 });
 
 const ScoreSchema = z.object({
@@ -38,17 +41,20 @@ Has Website: ${hasWebsite ? 'Yes' : 'No'}
 Score the lead based on their likely need for our services. Businesses without websites or with a clear need for digital presence should score higher. Provide a detailed structured JSON response.
 `;
 
-    const response = await openai.beta.chat.completions.parse({
-      model: 'gpt-4o-mini',
+    const response = await openai.chat.completions.create({
+      model: 'gpt-5.5',
       messages: [
-        { role: 'system', content: 'You are a lead scoring AI.' },
+        { role: 'system', content: 'You are a lead scoring AI. Output JSON only matching the schema: {"overall_score": 0-100, "digital_presence_gap": 0-10, "category_fit": 0-10, "review_activity": 0-10, "market_density": 0-10, "competitor_presence": 0-10, "ai_reasoning": "..."}' },
         { role: 'user', content: prompt }
       ],
-      response_format: zodResponseFormat(ScoreSchema, 'score_result'),
+      response_format: { type: 'json_object' }
     });
 
-    const parsed = response.choices[0].message.parsed;
-    return parsed;
+    const content = response.choices[0].message.content;
+    if (!content) return null;
+
+    const parsed = JSON.parse(content);
+    return ScoreSchema.parse(parsed);
   } catch (error) {
     console.error('OpenAI Scoring Error:', error);
     return null;
@@ -70,7 +76,7 @@ Why they are a good lead: ${scoreReasoning}
 The email should be friendly, not overly salesy, and highlight the specific value we could bring based on the reasoning provided. Return the result as a JSON object with 'subject' and 'body' fields.`;
 
     const response = await openai.chat.completions.create({
-      model: 'gpt-4o-mini',
+      model: 'gpt-5.5',
       messages: [
         { role: 'system', content: 'You are an expert sales copywriter. Output JSON only: {"subject": "...", "body": "..."}' },
         { role: 'user', content: prompt }

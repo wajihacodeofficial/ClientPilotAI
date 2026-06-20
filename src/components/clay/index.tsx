@@ -17,7 +17,7 @@ export function ClayCard({ className, children, ...props }: HTMLMotionProps<'div
   )
 }
 
-export interface ClayButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ClayButtonProps extends Omit<HTMLMotionProps<'button'>, 'variant'> {
   variant?: 'primary' | 'soft' | 'ghost'
 }
 
