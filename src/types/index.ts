@@ -152,6 +152,22 @@ export interface FilterState {
   searchQuery: string;
 }
 
+// ============================================================
+// Notifications
+// ============================================================
+
+export type NotificationType = 'lead' | 'proposal' | 'pipeline' | 'outreach' | 'system';
+
+export interface Notification {
+  id: string;
+  type: NotificationType;
+  title: string;
+  message: string;
+  timestamp: string; // ISO date string
+  read: boolean;
+  leadId?: string;
+}
+
 export interface Proposal {
   id: string;
   leadId: string;
@@ -180,6 +196,7 @@ export interface AppState {
   userRole: 'admin' | 'user' | null;
   userEmail: string | null;
   proposals: Proposal[];
+  notifications: Notification[];
 
   // Actions
   setLeads: (leads: Lead[]) => void;
@@ -197,4 +214,8 @@ export interface AppState {
   addProposal: (proposal: Proposal) => void;
   updateProposalStatus: (id: string, status: Proposal['status']) => void;
   deleteProposal: (id: string) => void;
+  addNotification: (notification: Omit<Notification, 'id' | 'read' | 'timestamp'>) => void;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
+  clearNotifications: () => void;
 }

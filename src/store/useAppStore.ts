@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { AppState, FilterState, Lead, PipelineStage, OutreachMessage, Proposal } from '@/types'
+import type { AppState, FilterState, Lead, Notification, PipelineStage, OutreachMessage, Proposal } from '@/types'
 import { supabase } from '@/lib/supabaseClient'
 
 const defaultFilters: FilterState = {
@@ -25,6 +25,48 @@ export const useAppStore = create<AppState & {
   userRole: null,
   userEmail: null,
   proposals: [],
+  notifications: [
+    {
+      id: 'n1',
+      type: 'lead',
+      title: 'New High-Score Lead',
+      message: 'Al Noor Restaurant scored 91/100 and is ready for outreach.',
+      timestamp: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+      read: false,
+    },
+    {
+      id: 'n2',
+      type: 'pipeline',
+      title: 'Stage Updated',
+      message: 'City Pharmacy moved from Qualified → Contacted.',
+      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+      read: false,
+    },
+    {
+      id: 'n3',
+      type: 'outreach',
+      title: 'Outreach Email Sent',
+      message: 'Personalised email delivered to Green Gym successfully.',
+      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      read: false,
+    },
+    {
+      id: 'n4',
+      type: 'proposal',
+      title: 'Proposal Viewed',
+      message: 'Your proposal for Metro Salon was opened by the client.',
+      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
+      read: true,
+    },
+    {
+      id: 'n5',
+      type: 'system',
+      title: 'AI Scoring Complete',
+      message: 'Batch scoring finished — 24 new leads evaluated.',
+      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      read: true,
+    },
+  ],
 
 
   setLeads: (leads: Lead[]) => set({ leads }),
@@ -113,6 +155,33 @@ export const useAppStore = create<AppState & {
     set((state) => ({
       proposals: state.proposals.filter((p) => p.id !== id),
     })),
+
+  addNotification: (notification) =>
+    set((state) => ({
+      notifications: [
+        {
+          ...notification,
+          id: `n-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+          read: false,
+          timestamp: new Date().toISOString(),
+        } as Notification,
+        ...state.notifications,
+      ],
+    })),
+
+  markNotificationRead: (id: string) =>
+    set((state) => ({
+      notifications: state.notifications.map((n) =>
+        n.id === id ? { ...n, read: true } : n
+      ),
+    })),
+
+  markAllNotificationsRead: () =>
+    set((state) => ({
+      notifications: state.notifications.map((n) => ({ ...n, read: true })),
+    })),
+
+  clearNotifications: () => set({ notifications: [] }),
 
   initRealtime: () => {
     console.log('Initializing Supabase Realtime subscriptions...');
