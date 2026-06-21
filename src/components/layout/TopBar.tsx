@@ -35,24 +35,24 @@ export function TopBar() {
         <span className="text-[15px] font-bold text-white tracking-wide">
           Acme Software Agency
         </span>
-        <ChevronDown className="h-4 w-4 text-[var(--mint)] drop-shadow-[0_0_2px_rgba(99,217,160,0.5)]" />
+        <ChevronDown className="h-4 w-4 text-(--mint) drop-shadow-[0_0_2px_rgba(99,217,160,0.5)]" />
       </div>
 
       {/* Right: live indicator + actions */}
       <div className="flex items-center gap-3">
         {/* Live indicator */}
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-[var(--forest-900)] border border-[var(--mint)] shadow-[0_0_15px_rgba(99,217,160,0.2)] animate-pulse-glow">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-(--forest-900) border border-(--mint) shadow-[0_0_15px_rgba(99,217,160,0.2)] animate-pulse-glow">
           <span className="relative flex h-2.5 w-2.5">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[var(--mint)] opacity-75" />
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[var(--mint)] shadow-[0_0_8px_var(--mint)]" />
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-(--mint) opacity-75" />
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-(--mint) shadow-[0_0_8px_var(--mint)]" />
           </span>
-          <span className="text-[11px] font-extrabold text-[var(--mint)] tracking-widest uppercase">Live</span>
+          <span className="text-[11px] font-extrabold text-(--mint) tracking-widest uppercase">Live</span>
         </div>
 
         {/* Notifications */}
         <button className="relative h-10 w-10 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:bg-white/10 text-white transition-all">
           <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[var(--gold)] shadow-[0_0_5px_var(--gold)]" />
+          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-(--gold) shadow-[0_0_5px_var(--gold)]" />
         </button>
 
         {/* Dark mode toggle */}
@@ -66,14 +66,14 @@ export function TopBar() {
 
         {/* Avatar */}
         <div className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity ml-2">
-          <div className="h-11 w-11 rounded-full bg-gradient-to-br from-[var(--emerald)] to-[var(--forest-600)] shadow-[0_8px_16px_rgba(80,227,164,0.3),inset_0_2px_4px_rgba(255,255,255,0.4)] border border-[var(--mint)] flex items-center justify-center text-white font-bold text-sm shrink-0">
+          <div className="h-11 w-11 rounded-full bg-linear-to-br from-(--emerald) to-(--forest-600) shadow-[0_8px_16px_rgba(80,227,164,0.3),inset_0_2px_4px_rgba(255,255,255,0.4)] border border-(--mint) flex items-center justify-center text-white font-bold text-sm shrink-0">
             {userRole === 'admin' ? 'AD' : 'US'}
           </div>
           <div className="hidden sm:block">
             <p className="text-[13px] font-bold text-white leading-none">
               {userRole === 'admin' ? 'Admin User' : 'Normal User'}
             </p>
-            <p className="text-[11px] text-[var(--mint)] leading-none mt-1.5 font-semibold">
+            <p className="text-[11px] text-(--mint) leading-none mt-1.5 font-semibold">
               {userEmail || 'user@example.com'}
             </p>
           </div>
@@ -83,7 +83,7 @@ export function TopBar() {
         <button 
           onClick={handleLogout} 
           title="Log out" 
-          className="relative h-10 w-10 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 text-[var(--text-secondary)] transition-all ml-2"
+          className="relative h-10 w-10 flex items-center justify-center rounded-2xl bg-white/5 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)] hover:bg-red-500/20 hover:text-red-400 hover:border-red-500/30 text-(--text-secondary) transition-all ml-2"
         >
           <LogOut className="h-5 w-5" />
         </button>

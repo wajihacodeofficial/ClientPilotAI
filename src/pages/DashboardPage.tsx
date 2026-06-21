@@ -73,7 +73,7 @@ function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: S
           ) : (
             <TrendingDown className="h-3.5 w-3.5 text-[#FFB347]" />
           )}
-          <span className={cn('text-xs font-extrabold', trend >= 0 ? 'text-[var(--mint)]' : 'text-[var(--gold)]')}>
+          <span className={cn('text-xs font-extrabold', trend >= 0 ? 'text-(--mint)' : 'text-(--gold)')}>
             {trend >= 0 ? '+' : ''}{trend}% vs last week
           </span>
         </div>
@@ -197,7 +197,7 @@ export function DashboardPage() {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-[28px] font-black text-white tracking-tight">Overview</h1>
-          <p className="text-[14px] text-[var(--text-secondary)] mt-0.5 font-medium">
+          <p className="text-[14px] text-(--text-secondary) mt-0.5 font-medium">
             Real-time pipeline intelligence for your agency
           </p>
         </div>
@@ -224,8 +224,8 @@ export function DashboardPage() {
           className="lg:col-span-2 clay-card p-6"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full bg-[var(--forest-800)] border border-[var(--forest-600)] flex items-center justify-center">
-              <Activity className="h-4 w-4 text-[var(--mint)]" />
+            <div className="h-8 w-8 rounded-full bg-(--forest-800) border border-(--forest-600) flex items-center justify-center">
+              <Activity className="h-4 w-4 text-(--mint)" />
             </div>
             <h2 className="clay-card-title">Lead Discovery — Last 14 Days</h2>
           </div>
@@ -256,8 +256,8 @@ export function DashboardPage() {
           className="clay-card p-6 flex flex-col justify-between"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-8 w-8 rounded-full bg-[var(--forest-800)] border border-[var(--forest-600)] flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-[var(--gold)]" />
+            <div className="h-8 w-8 rounded-full bg-(--forest-800) border border-(--forest-600) flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-(--gold)" />
             </div>
             <h2 className="clay-card-title">Score Distribution</h2>
           </div>
@@ -297,8 +297,8 @@ export function DashboardPage() {
           className="lg:col-span-2 clay-card p-6"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full bg-[var(--forest-800)] border border-[var(--forest-600)] flex items-center justify-center">
-              <ArrowUpRight className="h-4 w-4 text-[var(--emerald)]" />
+            <div className="h-8 w-8 rounded-full bg-(--forest-800) border border-(--forest-600) flex items-center justify-center">
+              <ArrowUpRight className="h-4 w-4 text-(--emerald)" />
             </div>
             <h2 className="clay-card-title">Conversion Funnel</h2>
           </div>
@@ -327,8 +327,8 @@ export function DashboardPage() {
           className="clay-card p-6 flex flex-col"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full bg-[var(--forest-800)] border border-[var(--forest-600)] flex items-center justify-center">
-              <Activity className="h-4 w-4 text-[var(--mint)]" />
+            <div className="h-8 w-8 rounded-full bg-(--forest-800) border border-(--forest-600) flex items-center justify-center">
+              <Activity className="h-4 w-4 text-(--mint)" />
             </div>
             <h2 className="clay-card-title">Recent Activity</h2>
           </div>
@@ -346,8 +346,8 @@ export function DashboardPage() {
                   <ActivityIcon type={event.type} />
                   <div className="min-w-0">
                     <p className="text-[13px] font-bold text-white truncate">{event.leadName}</p>
-                    <p className="text-[12px] text-[var(--text-secondary)] leading-tight mt-0.5">{event.detail}</p>
-                    <p className="text-[10px] text-[var(--mint)]/70 mt-1.5 font-medium tracking-wide uppercase">{formatRelativeTime(event.timestamp)}</p>
+                    <p className="text-[12px] text-(--text-secondary) leading-tight mt-0.5">{event.detail}</p>
+                    <p className="text-[10px] text-(--mint)/70 mt-1.5 font-medium tracking-wide uppercase">{formatRelativeTime(event.timestamp)}</p>
                   </div>
                 </motion.div>
               ))}

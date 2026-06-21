@@ -59,9 +59,9 @@ export function Sidebar() {
                 className="min-w-0"
               >
                 <p className="text-[14px] font-extrabold text-white leading-none whitespace-nowrap">
-                  ClientPilot<span className="text-[var(--mint)] drop-shadow-[0_0_8px_rgba(99,217,160,0.5)]"> AI</span>
+                  ClientPilot<span className="text-(--mint) drop-shadow-[0_0_8px_rgba(99,217,160,0.5)]"> AI</span>
                 </p>
-                <p className="text-[10px] text-[var(--text-secondary)] leading-none mt-1 whitespace-nowrap font-mono tracking-widest uppercase">
+                <p className="text-[10px] text-(--text-secondary) leading-none mt-1 whitespace-nowrap font-mono tracking-widest uppercase">
                   Lead Acquisition
                 </p>
               </motion.div>
@@ -110,7 +110,7 @@ export function Sidebar() {
             exit={{ opacity: 0 }}
             className="mx-3 mb-4 px-4 py-3 rounded-2xl bg-white/5 border border-white/10 shadow-[inset_0_0_10px_rgba(255,255,255,0.02)] backdrop-blur-md"
           >
-            <p className="text-[10px] font-bold text-[var(--mint)] uppercase tracking-widest drop-shadow-[0_0_4px_rgba(99,217,160,0.3)]">Workspace</p>
+            <p className="text-[10px] font-bold text-(--mint) uppercase tracking-widest drop-shadow-[0_0_4px_rgba(99,217,160,0.3)]">Workspace</p>
             <p className="text-sm font-semibold text-white mt-1 truncate">Acme Software Agency</p>
           </motion.div>
         )}
@@ -120,7 +120,7 @@ export function Sidebar() {
       <div className="p-3 border-t border-white/10">
         <button
           onClick={toggle}
-          className="w-full flex items-center justify-center h-10 rounded-xl bg-white/5 hover:bg-white/10 text-[var(--text-secondary)] hover:text-white transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
+          className="w-full flex items-center justify-center h-10 rounded-xl bg-white/5 hover:bg-white/10 text-(--text-secondary) hover:text-white transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
