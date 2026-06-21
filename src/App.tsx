@@ -5,6 +5,7 @@ import { DashboardPage } from '@/pages/DashboardPage'
 import { LeadDiscoveryPage } from '@/pages/LeadDiscoveryPage'
 import { PipelinePage } from '@/pages/PipelinePage'
 import { LeadsPage } from '@/pages/LeadsPage'
+import { MessagesPage } from '@/pages/MessagesPage'
 import { ProposalsPage } from '@/pages/ProposalsPage'
 import { SettingsPage } from '@/pages/SettingsPage'
 import { AdminDashboardPage } from '@/pages/AdminDashboardPage'
@@ -42,6 +43,7 @@ function App() {
             <Route path="/app/discover" element={<LeadDiscoveryPage />} />
             <Route path="/app/pipeline" element={<PipelinePage />} />
             <Route path="/app/leads" element={<LeadsPage />} />
+            <Route path="/app/messages" element={<MessagesPage />} />
             <Route path="/app/proposals" element={<ProposalsPage />} />
             <Route path="/app/profile" element={<ProfilePage />} />
             <Route

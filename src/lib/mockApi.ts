@@ -196,7 +196,12 @@ function mapDbLeadToLead(dbLead: DbLead): Lead {
     discoveredAt: dbLead.created_at || new Date().toISOString(),
     distance: dbLead.distance || undefined,
     aiAnalysis: scores.ai_reasoning || 'AI scoring and analysis in progress...',
-    outreachMessages: (dbLead.outreach_messages || []).map((msg) => ({
+    outreachMessages: (Array.isArray(dbLead.outreach_messages) 
+      ? dbLead.outreach_messages 
+      : dbLead.outreach_messages 
+        ? [dbLead.outreach_messages] 
+        : []
+    ).filter(Boolean).map((msg: { id: string; subject?: string; content?: string; status?: 'draft' | 'sent'; created_at?: string }) => ({
       id: msg.id,
       subject: msg.subject || '',
       body: msg.content || '',
