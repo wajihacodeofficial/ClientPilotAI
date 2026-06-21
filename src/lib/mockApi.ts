@@ -4,12 +4,29 @@ import { mockLeads, mockDashboardStats } from '../data/mockLeads';
 import { getCategoryLabel } from './utils';
 
 let rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim();
-if (import.meta.env.MODE === 'production' && rawApiUrl.includes('localhost')) {
+
+if (import.meta.env.MODE === 'production') {
+  // If the backend is on a different domain, it should be an absolute URL
+  // If it's the same domain, we enforce '/api'
+  if (rawApiUrl === '/' || rawApiUrl === '') {
+    rawApiUrl = '/api';
+  } else if (rawApiUrl.includes('localhost')) {
+    rawApiUrl = '/api';
+  }
+}
+
+// Ensure the URL correctly points to the api endpoint without trailing slashes
+if (rawApiUrl.startsWith('http')) {
+  if (rawApiUrl.endsWith('/')) {
+    rawApiUrl = rawApiUrl.slice(0, -1);
+  }
+  if (!rawApiUrl.endsWith('/api')) {
+    rawApiUrl += '/api';
+  }
+} else if (!rawApiUrl.startsWith('/api')) {
   rawApiUrl = '/api';
 }
-if (rawApiUrl.startsWith('http') && !rawApiUrl.endsWith('/api') && !rawApiUrl.endsWith('/api/')) {
-  rawApiUrl = rawApiUrl.replace(/\/$/, '') + '/api';
-}
+
 const API_URL = rawApiUrl;
 
 // ============================================================
