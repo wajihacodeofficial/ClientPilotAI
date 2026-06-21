@@ -130,7 +130,7 @@ function mapDbLeadToLead(dbLead: DbLead): Lead {
 // Discovery Leads
 // ============================================================
 export async function discoverLeads(
-  params: { location: string; categories: string[]; radiusKm: number },
+  params: { location: string; categories: string[]; radiusKm: number; lat?: number; lng?: number },
   onProgress?: (steps: ProgressStep[]) => void
 ): Promise<{ leads: Lead[] }> {
   let session = null;
@@ -189,6 +189,8 @@ export async function discoverLeads(
       method: 'POST',
       body: JSON.stringify({
         location: params.location,
+        lat: params.lat,
+        lng: params.lng,
         categories: params.categories,
         radiusMeters: params.radiusKm * 1000,
       }),
@@ -588,6 +590,7 @@ export async function saveProposalApi(params: {
     status: raw['status'] as ProposalStatus,
     createdAt: raw['created_at'] as string,
     updatedAt: raw['updated_at'] as string,
+    leads: raw['leads'] as import('../types').Proposal['leads'],
   };
 }
 

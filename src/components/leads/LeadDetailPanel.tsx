@@ -8,9 +8,9 @@ import { CAT_ICON } from '@/lib/icons';
 import {
   Button, Badge, Sheet, Skeleton, Separator, Textarea, Progress,
 } from '@/components/ui'
-import { generateOutreach, sendOutreach, saveDraft, updateLeadStage, generateProposalApi, saveProposalApi, scoreLeadApi } from '@/lib/mockApi'
+import { generateOutreach, sendOutreach, saveDraft, updateLeadStage, generateProposalApi, saveProposalApi, scoreLeadApi, updateProposalStatusApi } from '@/lib/mockApi'
 import { useAppStore } from '@/store/useAppStore'
-import type { Lead, OutreachMessage, PipelineStage } from '@/types'
+import type { Lead, OutreachMessage, PipelineStage, Proposal } from '@/types'
 import { cn, getCategoryLabel, getScoreColor, getPipelineLabel } from '@/lib/utils'
 
 // ============================================================
@@ -286,13 +286,29 @@ function OutreachSection({ lead }: { lead: Lead }) {
 // ============================================================
 // Proposal Section
 // ============================================================
+const STATUSES_LIST: Proposal['status'][] = ['draft', 'submitted', 'reviewed', 'replied', 'accepted', 'rejected']
+
+const STATUS_LABELS: Record<Proposal['status'], string> = {
+  draft: 'Draft',
+  submitted: 'Submitted',
+  reviewed: 'Reviewed',
+  replied: 'Replied',
+  accepted: 'Accepted',
+  rejected: 'Rejected',
+}
+
 function ProposalSection({ lead }: { lead: Lead }) {
+  const proposals = useAppStore((s) => s.proposals)
   const addProposal = useAppStore((s) => s.addProposal)
+  const updateProposalStatusStore = useAppStore((s) => s.updateProposalStatus)
+  
+  const existingProposal = useMemo(() => proposals.find(p => p.leadId === lead.id), [proposals, lead.id])
+
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [savedOk, setSavedOk] = useState(false)
-  const [proposalTitle, setProposalTitle] = useState('')
-  const [proposalContent, setProposalContent] = useState('')
+  const [proposalTitle, setProposalTitle] = useState(existingProposal?.title || '')
+  const [proposalContent, setProposalContent] = useState(existingProposal?.content || '')
   const [error, setError] = useState<string | null>(null)
 
   const handleGenerate = async () => {
@@ -317,7 +333,7 @@ function ProposalSection({ lead }: { lead: Lead }) {
         leadId: lead.id,
         title: proposalTitle,
         content: proposalContent,
-        status: 'draft',
+        status: existingProposal?.status || 'draft',
       })
       addProposal(saved)
       setSavedOk(true)
@@ -326,6 +342,18 @@ function ProposalSection({ lead }: { lead: Lead }) {
       setError(e instanceof Error ? e.message : 'Save failed')
     } finally {
       setIsSaving(false)
+    }
+  }
+
+  const handleStatusChange = async (newStatus: Proposal['status']) => {
+    if (!existingProposal) return
+    updateProposalStatusStore(existingProposal.id, newStatus)
+    try {
+      await updateProposalStatusApi(existingProposal.id, newStatus)
+    } catch (err) {
+      console.error('Failed to update status on server:', err)
+      // Rollback
+      updateProposalStatusStore(existingProposal.id, existingProposal.status)
     }
   }
 
@@ -341,7 +369,7 @@ function ProposalSection({ lead }: { lead: Lead }) {
           className="h-7 text-xs gap-1.5 text-indigo-600 hover:text-indigo-700"
         >
           <Sparkles className="h-3 w-3" />
-          {proposalContent ? 'Regenerate' : 'Generate Proposal'}
+          {(proposalContent || existingProposal) ? 'Regenerate' : 'Generate Proposal'}
         </Button>
       </div>
 
@@ -349,32 +377,69 @@ function ProposalSection({ lead }: { lead: Lead }) {
         <p className="text-xs text-red-500 bg-red-50 dark:bg-red-950 rounded-md px-3 py-2">{error}</p>
       )}
 
-      {proposalContent ? (
-        <div className="space-y-2">
-          <div>
-            <p className="text-xs text-zinc-400 mb-1">Title</p>
-            <input
-              value={proposalTitle}
-              onChange={(e) => setProposalTitle(e.target.value)}
-              className="w-full text-sm font-medium bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
-            />
+      {(proposalContent || existingProposal) ? (
+        <div className="space-y-3.5">
+          {/* Status workflow dropdown if already saved */}
+          {existingProposal && (
+            <div className="grid grid-cols-2 gap-3.5 bg-zinc-50 dark:bg-zinc-900/50 p-3 rounded-lg border border-zinc-150 dark:border-zinc-800">
+              <div className="flex flex-col justify-center">
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Current Status</span>
+                <span className="mt-1">
+                  <Badge variant={
+                    existingProposal.status === 'accepted' ? 'success' :
+                    existingProposal.status === 'rejected' ? 'outline' :
+                    existingProposal.status === 'replied' ? 'warning' :
+                    existingProposal.status === 'draft' ? 'secondary' : 'default'
+                  } className="capitalize py-0.5 px-2">
+                    {existingProposal.status}
+                  </Badge>
+                </span>
+              </div>
+              <div>
+                <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wide">Change Workflow Status</label>
+                <select
+                  value={existingProposal.status}
+                  onChange={(e) => handleStatusChange(e.target.value as Proposal['status'])}
+                  className="w-full text-xs h-8 mt-1 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-2 focus:outline-none focus:ring-1 focus:ring-indigo-400 text-zinc-800 dark:text-zinc-200"
+                >
+                  {STATUSES_LIST.map((status) => (
+                    <option key={status} value={status}>
+                      {STATUS_LABELS[status]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <div>
+              <p className="text-xs text-zinc-400 mb-1">Title</p>
+              <input
+                value={proposalTitle}
+                onChange={(e) => setProposalTitle(e.target.value)}
+                className="w-full text-sm font-medium bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+            <div>
+              <p className="text-xs text-zinc-400 mb-1">Content (Markdown)</p>
+              <Textarea
+                value={proposalContent}
+                onChange={(e) => setProposalContent(e.target.value)}
+                rows={10}
+                className="text-xs font-mono"
+              />
+            </div>
+            <Button onClick={handleSave} isLoading={isSaving} size="sm" className="w-full gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white">
+              {savedOk ? (
+                <><CheckCircle2 className="h-4 w-4" /> Saved successfully!</>
+              ) : existingProposal ? (
+                <><Save className="h-4 w-4" /> Save Changes</>
+              ) : (
+                <><Save className="h-4 w-4" /> Save Proposal (Draft)</>
+              )}
+            </Button>
           </div>
-          <div>
-            <p className="text-xs text-zinc-400 mb-1">Content (Markdown)</p>
-            <Textarea
-              value={proposalContent}
-              onChange={(e) => setProposalContent(e.target.value)}
-              rows={10}
-              className="text-xs font-mono"
-            />
-          </div>
-          <Button onClick={handleSave} isLoading={isSaving} size="sm" className="w-full gap-1.5">
-            {savedOk ? (
-              <><CheckCircle2 className="h-4 w-4" /> Saved to Proposals!</>
-            ) : (
-              <><Save className="h-4 w-4" /> Save Proposal (Draft)</>
-            )}
-          </Button>
         </div>
       ) : (
         <div className="rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 px-4 py-6 text-center">

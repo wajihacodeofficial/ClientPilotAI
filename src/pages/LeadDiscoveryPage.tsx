@@ -12,7 +12,7 @@ import {
 import { discoverLeads } from '@/lib/mockApi'
 import { useAppStore } from '@/store/useAppStore'
 import type { BusinessCategory, Lead, ProgressStep } from '@/types'
-import { cn, getCategoryLabel, getScoreColor } from '@/lib/utils'
+import { cn, getCategoryLabel } from '@/lib/utils'
 
 // Fix Leaflet default marker icons (broken in Vite builds)
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
@@ -351,7 +351,13 @@ export function LeadDiscoveryPage() {
     setHasSearched(true)
 
     const result = await discoverLeads(
-      { location: locationText, categories: selectedCats, radiusKm: radius },
+      {
+        location: locationText,
+        lat: mapCenter[0],
+        lng: mapCenter[1],
+        categories: selectedCats,
+        radiusKm: radius
+      },
       (updatedSteps) => setSteps(updatedSteps)
     )
 

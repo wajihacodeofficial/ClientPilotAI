@@ -174,7 +174,15 @@ router.post('/', async (req, res) => {
     const { data: saved, error } = await supabaseAdmin
       .from('proposals')
       .upsert(proposalData, { onConflict: 'workspace_id,lead_id' })
-      .select()
+      .select(`
+        *,
+        leads (
+          business_name,
+          category,
+          address,
+          city
+        )
+      `)
       .single();
 
     if (error) throw error;

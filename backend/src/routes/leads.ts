@@ -1,13 +1,15 @@
 import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
-import { discoverBusinessesByLocation, OSMGeocodingError, OSMOverpassError } from '../services/osm';
+import { discoverBusinessesByLocation, searchNearbyBusinesses, OSMGeocodingError, OSMOverpassError } from '../services/osm';
 import { scoreLead, generateOutreach } from '../services/openai';
 
 const router = Router();
 
 const DiscoverSchema = z.object({
-  location: z.string().trim().min(1, 'Location is required'),
+  location: z.string().trim().optional(),
+  lat: z.coerce.number().optional(),
+  lng: z.coerce.number().optional(),
   categories: z.array(z.string()).default([]),
   radiusMeters: z.coerce.number().min(100).max(50000).default(5000)
 });
@@ -57,7 +59,7 @@ router.get('/', async (req, res) => {
 // POST /api/leads/discover
 router.post('/discover', async (req, res) => {
   try {
-    const { location, categories, radiusMeters } = DiscoverSchema.parse(req.body);
+    const { location, lat, lng, categories, radiusMeters } = DiscoverSchema.parse(req.body);
     const user = req.user!;
 
     const { data: profile } = await supabaseAdmin
@@ -68,13 +70,35 @@ router.post('/discover', async (req, res) => {
 
     if (!profile?.workspace_id) return res.status(403).json({ error: 'No workspace found' });
 
-    // 1. Geocode location, 2. query Overpass, 3. normalize OSM businesses
-    const discovery = await discoverBusinessesByLocation({
-      location,
-      categories,
-      radiusMeters,
-      limit: 100,
-    });
+    // 1. Skip geocoding if lat/lng are provided, else query Nominatim
+    let discovery;
+    if (lat !== undefined && lng !== undefined) {
+      const result = await searchNearbyBusinesses({
+        lat,
+        lng,
+        radiusMeters,
+        categories,
+        limit: 100,
+      });
+      const displayName = location || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+      discovery = {
+        ...result,
+        geocodedLocation: {
+          lat,
+          lng,
+          displayName,
+        }
+      };
+    } else if (location) {
+      discovery = await discoverBusinessesByLocation({
+        location,
+        categories,
+        radiusMeters,
+        limit: 100,
+      });
+    } else {
+      return res.status(400).json({ error: 'Either location or coordinates (lat, lng) are required' });
+    }
 
     if (discovery.businesses.length === 0) {
       return res.json({
@@ -93,7 +117,7 @@ router.post('/discover', async (req, res) => {
       const category = inferLeadCategory(categories, business.category, business.type);
       const hasWebsite = !!business.website;
       const address = business.address || [business.area, business.city].filter(Boolean).join(', ') || discovery.geocodedLocation.displayName;
-      const city = business.city || business.area || location.split(',')[0]?.trim() || discovery.geocodedLocation.displayName;
+      const city = business.city || business.area || (location ? location.split(',')[0]?.trim() : '') || discovery.geocodedLocation.displayName;
       
       const leadData = {
         workspace_id: profile.workspace_id,
