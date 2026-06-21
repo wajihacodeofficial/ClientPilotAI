@@ -10,7 +10,7 @@ import {
   Button, Badge, Sheet, Skeleton, Separator, Textarea, Progress,
 } from '@/components/ui'
 import {
-  prepareLead, sendOutreach, saveDraft,
+  prepareLead, generateOutreach, sendOutreach, saveDraft,
   updateLeadStage, saveProposalApi, updateProposalStatusApi,
 } from '@/lib/mockApi'
 import { useAppStore } from '@/store/useAppStore'
@@ -367,26 +367,78 @@ function OutreachSection({ lead }: { lead: Lead }) {
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const lastSyncedOutreachRef = useRef<string | null>(null)
+  const lastSyncedEmailRef = useRef<string | undefined>(lead.contactEmail)
+
+  // Auto-prepare updates the same lead record after this component has mounted.
+  // Keep the editable box in sync with newly generated AI content without
+  // continuously overwriting manual edits.
+  useEffect(() => {
+    const nextSubject = lead.outreachSubject ?? firstMsg?.subject ?? ''
+    const nextBody = lead.outreachBody ?? firstMsg?.body ?? ''
+    const syncKey = [
+      lead.id,
+      lead.outreachGeneratedAt ?? '',
+      firstMsg?.id ?? '',
+      firstMsg?.createdAt ?? '',
+      nextSubject,
+      nextBody,
+    ].join('|')
+
+    if ((!nextSubject && !nextBody) || lastSyncedOutreachRef.current === syncKey) return
+
+    setSubject(nextSubject)
+    setBody(nextBody)
+    lastSyncedOutreachRef.current = syncKey
+  }, [
+    lead.id,
+    lead.outreachGeneratedAt,
+    lead.outreachSubject,
+    lead.outreachBody,
+    firstMsg?.id,
+    firstMsg?.createdAt,
+    firstMsg?.subject,
+    firstMsg?.body,
+  ])
+
+  useEffect(() => {
+    if (!lead.contactEmail || lead.contactEmail === lastSyncedEmailRef.current) return
+    setRecipientEmail(lead.contactEmail)
+    lastSyncedEmailRef.current = lead.contactEmail
+  }, [lead.contactEmail])
 
   const handleRegenerate = async () => {
     setIsRegenerating(true)
     setError(null)
+    setSentSuccess(false)
     try {
-      const result = await prepareLead(lead.id, true)
-      if (result.lead.outreachSubject) setSubject(result.lead.outreachSubject)
-      if (result.lead.outreachBody) setBody(result.lead.outreachBody)
-      updateLeadStore(lead.id, result.lead)
-      // Also push into outreach messages list for legacy dashboard compatibility
-      if (result.lead.outreachSubject && result.lead.outreachBody) {
-        updateLeadOutreachStore(lead.id, {
-          subject: result.lead.outreachSubject,
-          body: result.lead.outreachBody,
-          status: 'draft',
-          generatedAt: new Date().toISOString(),
-        })
+      const generated = await generateOutreach(lead.id)
+      const nextSubject = generated.subject ?? ''
+      const nextBody = generated.body ?? ''
+      const generatedAt = generated.generatedAt ?? generated.createdAt ?? new Date().toISOString()
+
+      if (!nextBody.trim()) {
+        throw new Error('AI did not return an outreach message. Please try again.')
       }
+
+      setSubject(nextSubject)
+      setBody(nextBody)
+      updateLeadStore(lead.id, {
+        outreachSubject: nextSubject,
+        outreachBody: nextBody,
+        outreachStatus: 'draft',
+        outreachGeneratedAt: generatedAt,
+        lastError: null,
+      })
+      updateLeadOutreachStore(lead.id, {
+        ...generated,
+        subject: nextSubject,
+        body: nextBody,
+        status: 'draft',
+        generatedAt,
+      })
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'Regeneration failed')
+      setError(e instanceof Error ? e.message : 'AI message generation failed')
     } finally {
       setIsRegenerating(false)
     }
@@ -394,12 +446,22 @@ function OutreachSection({ lead }: { lead: Lead }) {
 
   const handleSend = async () => {
     if (!body.trim()) return
+    if (!recipientEmail.trim()) {
+      setError('Add the shop email address before sending this outreach message.')
+      return
+    }
     setIsSending(true)
     setError(null)
     try {
       const msg: OutreachMessage = { subject, body, status: 'sent' }
       await sendOutreach(lead.id, msg, recipientEmail)
-      updateLeadStore(lead.id, { outreachStatus: 'sent', outreachSentAt: new Date().toISOString() })
+      updateLeadStore(lead.id, {
+        outreachSubject: subject,
+        outreachBody: body,
+        outreachStatus: 'sent',
+        outreachSentAt: new Date().toISOString(),
+        pipelineStage: 'contacted',
+      })
       updateLeadOutreachStore(lead.id, { ...msg })
       setSentSuccess(true)
       setTimeout(() => setSentSuccess(false), 3500)
@@ -536,7 +598,7 @@ function OutreachSection({ lead }: { lead: Lead }) {
         <div className="rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 px-4 py-6 text-center">
           <Mail className="h-8 w-8 text-zinc-300 dark:text-zinc-600 mx-auto mb-2" />
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            AI is preparing a personalised outreach message for {lead.name}…
+            Click “Generate with AI” to create an editable outreach message for {lead.name}.
           </p>
         </div>
       )}
