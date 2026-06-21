@@ -38,7 +38,9 @@ router.get('/', async (req, res) => {
 
     if (!profile?.workspace_id) return res.status(403).json({ error: 'No workspace found' });
 
-    // Fetch leads for this workspace
+    // Fetch real leads for this workspace. Pipeline stage is stored as
+    // append-only history in pipeline_stages, so we merge the latest stage
+    // into each lead before returning it to the frontend.
     const { data: leads, error } = await supabaseAdmin
       .from('leads')
       .select(`
@@ -50,7 +52,34 @@ router.get('/', async (req, res) => {
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    res.json(leads);
+
+    const leadIds = (leads || []).map((lead) => lead.id);
+    let latestStageByLeadId = new Map<string, string>();
+
+    if (leadIds.length > 0) {
+      const { data: stageHistory, error: stageError } = await supabaseAdmin
+        .from('pipeline_stages')
+        .select('lead_id, stage, changed_at')
+        .eq('workspace_id', profile.workspace_id)
+        .in('lead_id', leadIds)
+        .order('changed_at', { ascending: false });
+
+      if (stageError) throw stageError;
+
+      latestStageByLeadId = new Map<string, string>();
+      for (const stageRow of stageHistory || []) {
+        if (!latestStageByLeadId.has(stageRow.lead_id)) {
+          latestStageByLeadId.set(stageRow.lead_id, stageRow.stage);
+        }
+      }
+    }
+
+    const leadsWithPipelineStage = (leads || []).map((lead) => ({
+      ...lead,
+      pipeline_stage: latestStageByLeadId.get(lead.id) || 'discovery',
+    }));
+
+    res.json(leadsWithPipelineStage);
   } catch (err: unknown) {
     res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
   }

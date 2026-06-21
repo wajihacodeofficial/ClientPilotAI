@@ -4,6 +4,9 @@ import { mockLeads, mockDashboardStats } from '../data/mockLeads';
 import { getCategoryLabel } from './utils';
 
 let rawApiUrl = (import.meta.env.VITE_API_URL || '/api').trim();
+if (import.meta.env.MODE === 'production' && rawApiUrl.includes('localhost')) {
+  rawApiUrl = '/api';
+}
 if (rawApiUrl.startsWith('http') && !rawApiUrl.endsWith('/api') && !rawApiUrl.endsWith('/api/')) {
   rawApiUrl = rawApiUrl.replace(/\/$/, '') + '/api';
 }
@@ -20,7 +23,11 @@ function jitter(base: number, variance = 200): number {
   return base + Math.random() * variance - variance / 2;
 }
 
+const isProd = import.meta.env.MODE === 'production';
+const forceDemo = import.meta.env.VITE_FORCE_DEMO === 'true';
+
 function isDemoMode(session: unknown): boolean {
+  if (isProd && !forceDemo) return false;
   const isEnvConfigured =
     !!import.meta.env.VITE_SUPABASE_URL &&
     import.meta.env.VITE_SUPABASE_URL !== 'https://your-project-id.supabase.co';
@@ -55,9 +62,9 @@ async function fetchWithAuth(endpoint: string, options: RequestInit = {}) {
 interface DbLead {
   id: string;
   business_name?: string;
-  category: BusinessCategory;
+  category?: string | null;
   address?: string;
-  city?: 'Karachi' | 'Lahore' | 'Islamabad' | 'Rawalpindi' | 'Faisalabad';
+  city?: string | null;
   phone?: string | null;
   rating?: number | null;
   review_count?: number | null;
@@ -86,17 +93,46 @@ interface DbLead {
   }[];
 }
 
+const PIPELINE_STAGES: PipelineStage[] = ['discovery', 'qualified', 'contacted', 'client'];
+
+function normalizePipelineStage(stage?: string | null): PipelineStage {
+  return PIPELINE_STAGES.includes(stage as PipelineStage) ? (stage as PipelineStage) : 'discovery';
+}
+
+function normalizeBusinessCategory(category?: string | null): BusinessCategory {
+  const normalized = (category || '').trim().toLowerCase();
+  const supported: BusinessCategory[] = [
+    'restaurant', 'retail', 'salon', 'clinic', 'auto_service', 'bakery', 'pharmacy',
+    'tailor', 'cafe', 'gym', 'electronics', 'jewellery', 'real_estate', 'catering',
+  ];
+
+  if (supported.includes(normalized as BusinessCategory)) return normalized as BusinessCategory;
+
+  // OSM returns a wide range of category names. Map unknown real-world values
+  // to the closest frontend category instead of breaking Leads/Pipeline views.
+  if (['fast_food', 'food_court', 'bar', 'pub'].includes(normalized)) return 'restaurant';
+  if (['shop', 'supermarket', 'convenience', 'marketplace', 'mall', 'department_store'].includes(normalized)) return 'retail';
+  if (['beauty', 'hairdresser', 'spa'].includes(normalized)) return 'salon';
+  if (['doctors', 'dentist', 'hospital', 'medical_centre'].includes(normalized)) return 'clinic';
+  if (['car_repair', 'car_wash', 'vehicle_inspection'].includes(normalized)) return 'auto_service';
+  if (['fitness_centre', 'sports_centre'].includes(normalized)) return 'gym';
+
+  return 'retail';
+}
+
 // Helper to map Supabase database records to frontend Lead interface
 function mapDbLeadToLead(dbLead: DbLead): Lead {
   const scores = dbLead.lead_scores || {};
   const hasWebsite = dbLead.has_website || false;
+  const city = (dbLead.city || 'Karachi') as Lead['city'];
+  const category = normalizeBusinessCategory(dbLead.category);
   
   return {
     id: dbLead.id,
     name: dbLead.business_name || 'Unknown Business',
-    category: dbLead.category,
+    category,
     address: dbLead.address || '',
-    city: dbLead.city || 'Karachi',
+    city,
     phone: dbLead.phone || undefined,
     rating: dbLead.rating || undefined,
     reviewCount: dbLead.review_count || undefined,
@@ -110,7 +146,7 @@ function mapDbLeadToLead(dbLead: DbLead): Lead {
       marketDensity: scores.market_density || 0,
       competitorPresence: scores.competitor_presence || 0,
     },
-    pipelineStage: dbLead.pipeline_stage || 'discovery',
+    pipelineStage: normalizePipelineStage(dbLead.pipeline_stage),
     discoveredAt: dbLead.created_at || new Date().toISOString(),
     distance: dbLead.distance || undefined,
     aiAnalysis: scores.ai_reasoning || 'AI scoring and analysis in progress...',
@@ -209,7 +245,8 @@ export async function discoverLeads(
       leads: (result.leads || []).map(mapDbLeadToLead),
     };
   } catch (err) {
-    console.warn('API discovery failed, falling back to local simulation:', err);
+    console.warn('API discovery failed:', err);
+    if (isProd && !forceDemo) throw err;
     if (onProgress) {
       onProgress([
         { id: '1', label: 'Geocoding location...', status: 'done' },
@@ -241,6 +278,7 @@ export async function scoreLeadApi(leadId: string): Promise<Record<string, unkno
     return result as Record<string, unknown>;
   } catch (err) {
     console.warn('[scoreLeadApi] failed:', err);
+    if (isProd && !forceDemo) throw err;
     return null;
   }
 }
@@ -258,17 +296,15 @@ export async function getAllLeads(): Promise<Lead[]> {
   }
 
   if (isDemoMode(session)) {
-    await delay(jitter(400, 100));
-    return [...mockLeads];
+    throw new Error('Please sign in with a real account to view workspace leads. Demo mode does not use dummy lead data.');
   }
 
   try {
     const raw = (await fetchWithAuth('/leads')) as DbLead[];
     return raw.map(mapDbLeadToLead);
   } catch (err) {
-    console.warn('getAllLeads API failed, using mock leads:', err);
-    await delay(jitter(300, 100));
-    return [...mockLeads];
+    console.warn('getAllLeads API failed:', err);
+    throw err;
   }
 }
 
@@ -292,7 +328,8 @@ export async function getDashboardStats(): Promise<DashboardStats> {
   try {
     return await fetchWithAuth('/analytics/overview');
   } catch (err) {
-    console.warn('getDashboardStats API failed, using mock stats:', err);
+    console.warn('getDashboardStats API failed:', err);
+    if (isProd && !forceDemo) throw err;
     await delay(jitter(400, 100));
     return { ...mockDashboardStats };
   }
@@ -341,7 +378,8 @@ export async function generateOutreach(leadId: string): Promise<OutreachMessage>
       createdAt: result.created_at,
     } as OutreachMessage;
   } catch (err) {
-    console.warn('generateOutreach API failed, using mock generation:', err);
+    console.warn('generateOutreach API failed:', err);
+    if (isProd && !forceDemo) throw err;
     await delay(jitter(1000, 200));
     const lead = mockLeads.find((l) => l.id === leadId);
     return {
@@ -486,6 +524,7 @@ export async function getProposals(): Promise<import('../types').Proposal[]> {
     }));
   } catch (err) {
     console.warn('getProposals failed:', err);
+    if (isProd && !forceDemo) throw err;
     return [];
   }
 }
@@ -516,6 +555,7 @@ export async function generateProposalApi(leadId: string): Promise<{ title: stri
     return result as { title: string; content: string };
   } catch (err) {
     console.warn('generateProposalApi failed:', err);
+    if (isProd && !forceDemo) throw err;
     throw new Error('Proposal generation failed', { cause: err });
   }
 }

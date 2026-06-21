@@ -148,13 +148,31 @@ export function PipelinePage() {
   const setLeads = useAppStore((s) => s.setLeads)
   const updateLeadStageStore = useAppStore((s) => s.updateLeadStage)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
 
   useEffect(() => {
-    getAllLeads().then((data) => {
-      setLeads(data)
-      setLoading(false)
-    })
+    let active = true
+
+    setLoading(true)
+    setError(null)
+    getAllLeads()
+      .then((data) => {
+        if (!active) return
+        setLeads(data)
+      })
+      .catch((err: unknown) => {
+        if (!active) return
+        setLeads([])
+        setError(err instanceof Error ? err.message : 'Unable to load real pipeline data.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
   }, [setLeads])
 
   const sensors = useSensors(
@@ -204,13 +222,33 @@ export function PipelinePage() {
     )
   }
 
+  if (error) {
+    return (
+      <div className="p-6 h-full flex flex-col">
+        <div className="mb-6">
+          <h1 className="text-[28px] font-heading font-black text-(--text-primary)">Pipeline</h1>
+          <p className="text-[14px] text-(--text-secondary) font-medium mt-0.5">
+            Real workspace data only · No dummy pipeline leads
+          </p>
+        </div>
+        <div className="clay-raised p-8 text-center border border-red-200 dark:border-red-900/60">
+          <p className="text-sm font-bold text-red-600 dark:text-red-400">Real pipeline data unavailable</p>
+          <p className="text-sm text-(--text-secondary) mt-2 max-w-xl mx-auto">{error}</p>
+          <p className="text-xs text-(--text-muted) mt-3">
+            Sign in with a real Supabase account and make sure the backend API is running to view saved pipeline stages.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 h-full flex flex-col">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-[28px] font-heading font-black text-(--text-primary)">Pipeline</h1>
         <p className="text-[14px] text-(--text-secondary) font-medium mt-0.5">
-          {leads.length} leads across {STAGES.length} stages · Drag to reorder
+          {leads.length} real leads across {STAGES.length} stages · Drag to reorder
         </p>
       </div>
 

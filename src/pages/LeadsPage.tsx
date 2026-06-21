@@ -26,6 +26,7 @@ export function LeadsPage() {
   const setLeads = useAppStore((s) => s.setLeads)
   const setSelectedLeadId = useAppStore((s) => s.setSelectedLeadId)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [search, setSearch] = useState('')
   const [stageFilter, setStageFilter] = useState<PipelineStage | 'all'>('all')
   const [scoreFilter, setScoreFilter] = useState<'all' | 'high' | 'medium' | 'low'>('all')
@@ -33,10 +34,27 @@ export function LeadsPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc')
 
   useEffect(() => {
-    getAllLeads().then((data) => {
-      setLeads(data)
-      setLoading(false)
-    })
+    let active = true
+
+    setLoading(true)
+    setError(null)
+    getAllLeads()
+      .then((data) => {
+        if (!active) return
+        setLeads(data)
+      })
+      .catch((err: unknown) => {
+        if (!active) return
+        setLeads([])
+        setError(err instanceof Error ? err.message : 'Unable to load real leads data.')
+      })
+      .finally(() => {
+        if (active) setLoading(false)
+      })
+
+    return () => {
+      active = false
+    }
   }, [setLeads])
 
   const handleSort = (key: SortKey) => {
@@ -148,6 +166,16 @@ export function LeadsPage() {
         <div className="space-y-2">
           {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}
         </div>
+      ) : error ? (
+        <div className="bg-white dark:bg-zinc-900 border border-red-200 dark:border-red-900/60 rounded-lg p-8 text-center shadow-sm">
+          <p className="text-sm font-semibold text-red-600 dark:text-red-400">Real leads data unavailable</p>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2 max-w-xl mx-auto">
+            {error}
+          </p>
+          <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-3">
+            Sign in with a real Supabase account and make sure the backend API is running to view workspace leads.
+          </p>
+        </div>
       ) : (
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden shadow-sm">
           <div className="overflow-x-auto">
@@ -167,7 +195,7 @@ export function LeadsPage() {
                 {filtered.length === 0 && (
                   <tr>
                     <td colSpan={7} className="text-center py-12 text-sm text-zinc-400 dark:text-zinc-500">
-                      No leads match your filters.
+                      {leads.length === 0 ? 'No real leads found yet. Run discovery to save workspace leads.' : 'No leads match your filters.'}
                     </td>
                   </tr>
                 )}

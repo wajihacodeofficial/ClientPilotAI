@@ -78,7 +78,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     try {
       if (mode === 'login') {
         // --- MOCK LOGIN BYPASS FOR ADMIN ---
-        if (isAdminMock && password === '123123') {
+        if (import.meta.env.MODE !== 'production' && isAdminMock && password === '123123') {
           setTimeout(() => {
             setUserEmail(email)
             setUserRole('admin')
@@ -131,45 +131,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     }
   }
 
-  const handleDemoLogin = async (role: 'admin' | 'user') => {
-    setLoading(true)
-    setError(null)
-    const demoEmail = role === 'admin' ? 'admin@clientpilotai.com' : 'user@clientpilotai.com'
-    const demoPassword = role === 'admin' ? 'Client@123' : 'User@123'
 
-    setEmail(demoEmail)
-    setPassword(demoPassword)
-
-    try {
-      const { data: authData, error: demoError } = await supabase.auth.signInWithPassword({
-        email: demoEmail,
-        password: demoPassword,
-      })
-      if (demoError) throw demoError
-
-      if (authData.user) {
-        setUserEmail(authData.user.email ?? null)
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('role')
-          .eq('id', authData.user.id)
-          .single()
-
-        const userRole = (!profileError && profile) ? (profile.role as 'admin' | 'user') : 'user'
-        setUserRole(userRole)
-
-        if (userRole === 'admin') {
-          navigate('/app/admin')
-        } else {
-          navigate('/app')
-        }
-      }
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : String(err))
-    } finally {
-      setLoading(false)
-    }
-  }
 
   const handleStateToggle = (targetMode: 'login' | 'signup') => {
     setError(null)
