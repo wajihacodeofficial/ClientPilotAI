@@ -92,7 +92,34 @@ interface DbLead {
   distance?: number;
   lat?: number;
   lng?: number;
+  // Enrichment fields
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  website?: string | null;
+  contact_source?: string | null;
+  contact_confidence?: number | null;
+  // Outreach draft fields
+  outreach_subject?: string | null;
+  outreach_body?: string | null;
+  outreach_status?: string | null;
+  outreach_generated_at?: string | null;
+  outreach_sent_at?: string | null;
+  // Proposal draft fields
+  proposal_content?: string | null;
+  proposal_status?: string | null;
+  proposal_generated_at?: string | null;
+  // Metadata
+  last_enrichment_run_at?: string | null;
+  last_error?: string | null;
   lead_scores?: {
+    overall_score?: number;
+    digital_presence_gap?: number;
+    category_fit?: number;
+    review_activity?: number;
+    market_density?: number;
+    competitor_presence?: number;
+    ai_reasoning?: string;
+  }[] | {
     overall_score?: number;
     digital_presence_gap?: number;
     category_fit?: number;
@@ -139,11 +166,13 @@ function normalizeBusinessCategory(category?: string | null): BusinessCategory {
 
 // Helper to map Supabase database records to frontend Lead interface
 function mapDbLeadToLead(dbLead: DbLead): Lead {
-  const scores = dbLead.lead_scores || {};
+  // lead_scores may come as array (joined query) or single object (upsert return)
+  const scoresRaw = Array.isArray(dbLead.lead_scores) ? dbLead.lead_scores[0] : dbLead.lead_scores;
+  const scores = scoresRaw || {};
   const hasWebsite = dbLead.has_website || false;
   const city = (dbLead.city || 'Karachi') as Lead['city'];
   const category = normalizeBusinessCategory(dbLead.category);
-  
+
   return {
     id: dbLead.id,
     name: dbLead.business_name || 'Unknown Business',
@@ -176,6 +205,25 @@ function mapDbLeadToLead(dbLead: DbLead): Lead {
     })),
     latitude: dbLead.lat || undefined,
     longitude: dbLead.lng || undefined,
+    // Enrichment fields
+    contactEmail: dbLead.contact_email ?? undefined,
+    contactPhone: dbLead.contact_phone ?? undefined,
+    website: dbLead.website ?? undefined,
+    contactSource: (dbLead.contact_source ?? undefined) as Lead['contactSource'],
+    contactConfidence: dbLead.contact_confidence ?? undefined,
+    // Outreach fields
+    outreachSubject: dbLead.outreach_subject ?? undefined,
+    outreachBody: dbLead.outreach_body ?? undefined,
+    outreachStatus: (dbLead.outreach_status ?? undefined) as Lead['outreachStatus'],
+    outreachGeneratedAt: dbLead.outreach_generated_at ?? undefined,
+    outreachSentAt: dbLead.outreach_sent_at ?? undefined,
+    // Proposal fields
+    proposalContent: dbLead.proposal_content ?? undefined,
+    proposalStatus: (dbLead.proposal_status ?? undefined) as Lead['proposalStatus'],
+    proposalGeneratedAt: dbLead.proposal_generated_at ?? undefined,
+    // Metadata
+    lastEnrichmentRunAt: dbLead.last_enrichment_run_at ?? undefined,
+    lastError: dbLead.last_error ?? null,
   };
 }
 
@@ -412,8 +460,11 @@ export async function generateOutreach(leadId: string): Promise<OutreachMessage>
 // ============================================================
 // Send Outreach
 // ============================================================
-export async function sendOutreach(leadId: string, message: OutreachMessage): Promise<void> {
-  console.log(`Sending outreach for lead ${leadId}`, message);
+export async function sendOutreach(
+  leadId: string,
+  message: OutreachMessage,
+  recipientEmail?: string
+): Promise<void> {
   let session = null;
   try {
     const { data } = await supabase.auth.getSession();
@@ -428,17 +479,27 @@ export async function sendOutreach(leadId: string, message: OutreachMessage): Pr
   }
 
   try {
-    // Optional: add backend endpoint if needed
+    await fetchWithAuth(`/leads/${leadId}/send-outreach`, {
+      method: 'POST',
+      body: JSON.stringify({
+        subject: message.subject,
+        body: message.body,
+        recipient_email: recipientEmail,
+      }),
+    });
   } catch (err) {
     console.warn('sendOutreach failed:', err);
+    if (isProd && !forceDemo) throw err;
   }
 }
 
 // ============================================================
 // Save Draft
 // ============================================================
-export async function saveDraft(leadId: string, message: OutreachMessage): Promise<void> {
-  console.log(`Saving draft for lead ${leadId}`, message);
+export async function saveDraft(
+  leadId: string,
+  message: Partial<OutreachMessage>
+): Promise<void> {
   let session = null;
   try {
     const { data } = await supabase.auth.getSession();
@@ -451,6 +512,77 @@ export async function saveDraft(leadId: string, message: OutreachMessage): Promi
     await delay(jitter(300, 50));
     return;
   }
+
+  try {
+    await fetchWithAuth(`/leads/${leadId}/save-draft`, {
+      method: 'POST',
+      body: JSON.stringify({
+        subject: message.subject,
+        body: message.body,
+      }),
+    });
+  } catch (err) {
+    console.warn('saveDraft failed:', err);
+    // Non-fatal: draft may already be stored locally
+  }
+}
+
+// ============================================================
+// Prepare Lead (Enrich + AI Generate Outreach + Proposal)
+// ============================================================
+export interface PrepareLeadResult {
+  lead: Lead;
+  proposalContent?: string;
+  proposalTitle?: string;
+  partialError?: string | null;
+}
+
+export async function prepareLead(
+  leadId: string,
+  force = false
+): Promise<PrepareLeadResult> {
+  let session = null;
+  try {
+    const { data } = await supabase.auth.getSession();
+    session = data.session;
+  } catch {
+    // Ignore session errors
+  }
+
+  if (isDemoMode(session)) {
+    // In demo mode: simulate enrichment & drafting with a delay
+    await delay(jitter(2200, 400));
+    const lead = mockLeads.find((l) => l.id === leadId);
+    if (!lead) throw new Error('Lead not found');
+
+    const demoResult: Lead = {
+      ...lead,
+      contactEmail: 'owner@' + lead.name.toLowerCase().replace(/\s+/g, '') + '.com',
+      contactSource: 'website_homepage',
+      contactConfidence: 0.8,
+      outreachSubject: `Grow ${lead.name} Online — Let's Talk`,
+      outreachBody: `Hi ${lead.name} team,\n\nI came across your business and noticed a great opportunity to strengthen your digital presence. We specialise in building high-converting websites for ${lead.category} businesses like yours.\n\nI'd love to show you a quick demo — completely free, no obligation.\n\nBest regards,\nClientPilot AI`,
+      outreachStatus: 'draft',
+      outreachGeneratedAt: new Date().toISOString(),
+      proposalContent: `# Proposal for ${lead.name}\n\n## Overview\nWe propose a modern web solution to help ${lead.name} attract more customers online.\n\n## Scope\n- Professional website design\n- SEO optimisation\n- Google Business profile setup\n- Social media integration\n\n## Pricing\nStarting from PKR 45,000 — flexible payment plans available.`,
+      proposalStatus: 'draft',
+      proposalGeneratedAt: new Date().toISOString(),
+    };
+    return { lead: demoResult, proposalContent: demoResult.proposalContent };
+  }
+
+  const result = await fetchWithAuth(`/leads/${leadId}/prepare`, {
+    method: 'POST',
+    body: JSON.stringify({ force }),
+  }) as { lead: DbLead; proposal?: { title?: string; content?: string } | null; error?: string | null };
+
+  const mappedLead = mapDbLeadToLead(result.lead as unknown as DbLead);
+  return {
+    lead: mappedLead,
+    proposalContent: result.proposal?.content ?? mappedLead.proposalContent,
+    proposalTitle: result.proposal?.title,
+    partialError: result.error,
+  };
 }
 
 // ============================================================

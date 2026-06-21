@@ -44,10 +44,12 @@ export interface OutreachMessage {
   id?: string;
   subject: string;
   body: string;
-  generatedAt?: string; // ISO date string
+  followUp?: string;       // Short follow-up email variant
+  whatsappBody?: string;   // WhatsApp/short outreach variant
+  generatedAt?: string;    // ISO date string
   createdAt?: string;
   status?: 'draft' | 'sent';
-  variant?: number; // 1 or 2 (for "regenerate" toggle)
+  variant?: number;        // 1 or 2 (for "regenerate" toggle)
 }
 
 export interface ProgressStep {
@@ -76,11 +78,36 @@ export interface Lead {
   pipelineStage: PipelineStage;
   discoveredAt: string; // ISO date string
   distance?: number; // km from search center
-  aiAnalysis: string; // Mock GPT reasoning text
+  aiAnalysis: string; // GPT reasoning text
   outreachMessages: OutreachMessage[]; // Outreach message variants
   latitude?: number;
   longitude?: number;
+
+  // --- Lead contact enrichment fields ---
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
+  contactSource?: 'osm_tag' | 'website_homepage' | 'website_contact_page' | 'none' | 'manual';
+  contactConfidence?: number;
+
+  // --- AI outreach draft fields ---
+  outreachSubject?: string;
+  outreachBody?: string;
+  outreachStatus?: 'draft' | 'approved' | 'sent';
+  outreachGeneratedAt?: string;
+  outreachSentAt?: string;
+
+  // --- AI proposal draft fields ---
+  proposalContent?: string;
+  proposalStatus?: 'draft' | 'submitted' | 'reviewed' | 'replied' | 'accepted' | 'rejected';
+  proposalGeneratedAt?: string;
+
+  // --- AI/enrichment metadata ---
+  lastEnrichmentRunAt?: string;
+  lastError?: string | null;
+  isPreparing?: boolean;   // transient UI flag — not persisted
 }
+
 
 // ============================================================
 // Discovery / Search
@@ -210,6 +237,7 @@ export interface AppState {
   setUserEmail: (email: string | null) => void;
   updateLeadStage: (id: string, stage: PipelineStage) => void;
   updateLeadOutreach: (id: string, message: OutreachMessage) => void;
+  updateLead: (id: string, updates: Partial<Lead>) => void;
   setProposals: (proposals: Proposal[]) => void;
   addProposal: (proposal: Proposal) => void;
   updateProposalStatus: (id: string, status: Proposal['status']) => void;

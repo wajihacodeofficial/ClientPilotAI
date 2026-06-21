@@ -2,7 +2,9 @@ import { Router } from 'express';
 import { z } from 'zod';
 import { supabaseAdmin } from '../lib/supabase';
 import { discoverBusinessesByLocation, searchNearbyBusinesses, OSMGeocodingError, OSMOverpassError } from '../services/osm';
-import { scoreLead, generateOutreach } from '../services/openai';
+import { scoreLead, generateOutreach, generateProposal } from '../services/openai';
+import { enrichLeadContact } from '../services/enrichment';
+
 
 const router = Router();
 
@@ -297,4 +299,294 @@ router.patch('/:id/stage', async (req, res) => {
   }
 });
 
+// POST /api/leads/:id/prepare — enrich contact info and auto-generate outreach + proposal
+// Skips generation if both outreach and proposal already exist (unless force=true is passed)
+router.post('/:id/prepare', async (req, res) => {
+  const user = req.user!;
+  try {
+    const { id } = req.params;
+    const force: boolean = req.body?.force === true;
+
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('workspace_id')
+      .eq('id', user.sub)
+      .single();
+
+    if (!profile?.workspace_id) {
+      return res.status(403).json({ error: 'No workspace found' });
+    }
+
+    // Fetch full lead with score
+    const { data: lead, error: leadErr } = await supabaseAdmin
+      .from('leads')
+      .select('*, lead_scores(*)')
+      .eq('id', id)
+      .eq('workspace_id', profile.workspace_id)
+      .single();
+
+    if (leadErr || !lead) {
+      return res.status(404).json({ error: 'Lead not found in your workspace' });
+    }
+
+    const now = new Date().toISOString();
+    const updates: Record<string, unknown> = {};
+    let lastError: string | null = null;
+
+    // ── Step A: Contact Enrichment ───────────────────────────────────────
+    // Only enrich if: forced, or never enriched before, or no email found yet
+    const needsEnrichment = force || !lead.last_enrichment_run_at;
+    if (needsEnrichment) {
+      try {
+        const rawOsmTags = (lead.raw_osm_tags as Record<string, unknown>) || {};
+        const enrichment = await enrichLeadContact(lead.website_url, rawOsmTags);
+
+        // Respect manually verified emails: only overwrite if the existing source is weaker
+        const existingSource = lead.contact_source as string | null;
+        const manuallyVerified = existingSource === 'manual';
+        if (!manuallyVerified) {
+          if (enrichment.email) {
+            updates.contact_email = enrichment.email;
+            updates.contact_source = enrichment.source;
+            updates.contact_confidence = enrichment.confidence;
+          } else if (!lead.contact_email) {
+            // Mark as not found so the UI can display an appropriate state
+            updates.contact_email = null;
+            updates.contact_source = 'none';
+            updates.contact_confidence = 0;
+          }
+        }
+        if (enrichment.phone && !lead.contact_phone) {
+          updates.contact_phone = enrichment.phone;
+        }
+        if (enrichment.website && !lead.website) {
+          updates.website = enrichment.website;
+        }
+        updates.last_enrichment_run_at = now;
+      } catch (enrichErr) {
+        lastError = enrichErr instanceof Error ? enrichErr.message : 'Enrichment failed';
+        console.error('[Prepare] Enrichment error:', enrichErr);
+      }
+    }
+
+    // ── Step B: AI Content Generation ───────────────────────────────────
+    const alreadyHasOutreach = !!lead.outreach_subject && !!lead.outreach_body;
+    const alreadyHasProposal = !!lead.proposal_content;
+    const needsGeneration = force || !alreadyHasOutreach || !alreadyHasProposal;
+
+    if (needsGeneration) {
+      const aiReasoning = (lead.lead_scores as { ai_reasoning?: string }[])?.[0]?.ai_reasoning
+        || 'This business lacks a modern digital presence and would benefit from our services.';
+
+      // Generate outreach if missing or forced
+      if (force || !alreadyHasOutreach) {
+        try {
+          const outreach = await generateOutreach(lead.business_name, lead.category, aiReasoning);
+          if (outreach) {
+            updates.outreach_subject = outreach.subject;
+            updates.outreach_body = outreach.body;
+            updates.outreach_status = 'draft';
+            updates.outreach_generated_at = now;
+            updates.last_ai_model = 'gemini-2.5-flash';
+
+            // Also insert into outreach_messages for dashboard compatibility
+            await supabaseAdmin.from('outreach_messages').upsert({
+              lead_id: id,
+              subject: outreach.subject,
+              content: outreach.body,
+              status: 'draft',
+              generated_by_ai: true,
+              updated_at: now,
+            }, { onConflict: 'lead_id' }).select().single();
+          }
+        } catch (outreachErr) {
+          lastError = outreachErr instanceof Error ? outreachErr.message : 'Outreach generation failed';
+          console.error('[Prepare] Outreach generation error:', outreachErr);
+        }
+      }
+
+      // Generate proposal if missing or forced
+      if (force || !alreadyHasProposal) {
+        try {
+          const proposal = await generateProposal(
+            lead.business_name,
+            lead.category,
+            lead.address || '',
+            lead.phone || undefined,
+            lead.website_url || undefined,
+            (lead.lead_scores as { ai_reasoning?: string }[])?.[0]?.ai_reasoning,
+            (lead.raw_osm_tags as Record<string, unknown>) || {}
+          );
+          if (proposal) {
+            updates.proposal_content = proposal.content;
+            updates.proposal_status = 'draft';
+            updates.proposal_generated_at = now;
+
+            // Also upsert into proposals table for dashboard compatibility
+            await supabaseAdmin.from('proposals').upsert({
+              lead_id: id,
+              workspace_id: profile.workspace_id,
+              title: proposal.title,
+              content: proposal.content,
+              status: 'draft',
+              updated_at: now,
+            }, { onConflict: 'workspace_id,lead_id' }).select().single();
+          }
+        } catch (proposalErr) {
+          lastError = proposalErr instanceof Error ? proposalErr.message : 'Proposal generation failed';
+          console.error('[Prepare] Proposal generation error:', proposalErr);
+        }
+      }
+    }
+
+    if (lastError) updates.last_error = lastError;
+
+    // ── Step D: Persist updates ──────────────────────────────────────────
+    const { data: updatedLead, error: updateErr } = await supabaseAdmin
+      .from('leads')
+      .update({ ...updates, updated_at: now })
+      .eq('id', id)
+      .select('*, lead_scores(*), outreach_messages(*)')
+      .single();
+
+    if (updateErr) throw updateErr;
+
+    // Also fetch the latest proposal
+    const { data: latestProposal } = await supabaseAdmin
+      .from('proposals')
+      .select('*')
+      .eq('lead_id', id)
+      .eq('workspace_id', profile.workspace_id)
+      .order('updated_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    res.json({
+      lead: updatedLead,
+      proposal: latestProposal || null,
+      error: lastError,
+    });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+  }
+});
+
+// POST /api/leads/:id/send-outreach — mark outreach as sent and advance pipeline stage
+router.post('/:id/send-outreach', async (req, res) => {
+  const user = req.user!;
+  try {
+    const { id } = req.params;
+    const { subject, body, recipient_email } = req.body as {
+      subject?: string;
+      body?: string;
+      recipient_email?: string;
+    };
+
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('workspace_id')
+      .eq('id', user.sub)
+      .single();
+
+    if (!profile?.workspace_id) {
+      return res.status(403).json({ error: 'No workspace found' });
+    }
+
+    const now = new Date().toISOString();
+    const updates: Record<string, unknown> = {
+      outreach_status: 'sent',
+      outreach_sent_at: now,
+      updated_at: now,
+    };
+
+    if (subject) updates.outreach_subject = subject;
+    if (body) updates.outreach_body = body;
+
+    const { data: updatedLead, error } = await supabaseAdmin
+      .from('leads')
+      .update(updates)
+      .eq('id', id)
+      .eq('workspace_id', profile.workspace_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Update outreach_messages record as well
+    await supabaseAdmin
+      .from('outreach_messages')
+      .update({ status: 'sent', updated_at: now })
+      .eq('lead_id', id);
+
+    // Advance pipeline stage to 'contacted'
+    await supabaseAdmin.from('pipeline_stages').insert({
+      lead_id: id,
+      workspace_id: profile.workspace_id,
+      stage: 'contacted',
+      changed_by: user.sub,
+    });
+
+    res.json({
+      lead: updatedLead,
+      sent_to: recipient_email || null,
+      sent_at: now,
+    });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+  }
+});
+
+// POST /api/leads/:id/save-draft — save edited outreach subject/body as a draft
+router.post('/:id/save-draft', async (req, res) => {
+  const user = req.user!;
+  try {
+    const { id } = req.params;
+    const { subject, body } = req.body as { subject?: string; body?: string };
+
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('workspace_id')
+      .eq('id', user.sub)
+      .single();
+
+    if (!profile?.workspace_id) {
+      return res.status(403).json({ error: 'No workspace found' });
+    }
+
+    const now = new Date().toISOString();
+    const updates: Record<string, unknown> = {
+      outreach_status: 'draft',
+      updated_at: now,
+    };
+    if (subject !== undefined) updates.outreach_subject = subject;
+    if (body !== undefined) updates.outreach_body = body;
+
+    const { data: updatedLead, error } = await supabaseAdmin
+      .from('leads')
+      .update(updates)
+      .eq('id', id)
+      .eq('workspace_id', profile.workspace_id)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    // Mirror into outreach_messages
+    if (body !== undefined || subject !== undefined) {
+      await supabaseAdmin.from('outreach_messages').upsert({
+        lead_id: id,
+        subject: subject,
+        content: body,
+        status: 'draft',
+        updated_at: now,
+      }, { onConflict: 'lead_id' });
+    }
+
+    res.json({ lead: updatedLead, saved_at: now });
+  } catch (err: unknown) {
+    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+  }
+});
+
 export default router;
+

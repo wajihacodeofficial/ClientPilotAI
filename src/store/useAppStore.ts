@@ -107,6 +107,17 @@ export const useAppStore = create<AppState & {
         discoveryResults: state.discoveryResults.map(updater),
       };
     }),
+
+  // Merge partial field updates into both leads lists (used after /prepare response)
+  updateLead: (id: string, updates: Partial<Lead>) =>
+    set((state) => {
+      const updater = (l: Lead) => (l.id === id ? { ...l, ...updates } : l);
+      return {
+        leads: state.leads.map(updater),
+        discoveryResults: state.discoveryResults.map(updater),
+      };
+    }),
+
     
   updateLeadScore: (id: string, scoreData: Record<string, unknown>) =>
     set((state) => {

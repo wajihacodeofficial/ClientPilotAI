@@ -1,14 +1,18 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, MapPin, Phone, Globe, ExternalLink, Sparkles, RefreshCw,
-  Send, Save, CheckCircle2, Store
+  Send, Save, CheckCircle2, Store, Mail, AlertCircle, Copy, Check,
+  ChevronDown, Loader2, Edit2, AtSign,
 } from 'lucide-react'
-import { CAT_ICON } from '@/lib/icons';
+import { CAT_ICON } from '@/lib/icons'
 import {
   Button, Badge, Sheet, Skeleton, Separator, Textarea, Progress,
 } from '@/components/ui'
-import { generateOutreach, sendOutreach, saveDraft, updateLeadStage, generateProposalApi, saveProposalApi, scoreLeadApi, updateProposalStatusApi } from '@/lib/mockApi'
+import {
+  prepareLead, sendOutreach, saveDraft,
+  updateLeadStage, saveProposalApi, updateProposalStatusApi,
+} from '@/lib/mockApi'
 import { useAppStore } from '@/store/useAppStore'
 import type { Lead, OutreachMessage, PipelineStage, Proposal } from '@/types'
 import { cn, getCategoryLabel, getScoreColor, getPipelineLabel } from '@/lib/utils'
@@ -62,7 +66,6 @@ function StageStepper({ current, onAdvance }: { current: PipelineStage; onAdvanc
 // Score Breakdown Radar + Bars
 // ============================================================
 function ScoreBreakdownSection({ lead, isScoring }: { lead: Lead; isScoring: boolean }) {
-
   const barItems = [
     { label: 'Digital Presence Gap', value: lead.scoreBreakdown.digitalPresenceGap, max: 10 },
     { label: 'Category Fit', value: lead.scoreBreakdown.categoryFit, max: 10 },
@@ -78,62 +81,48 @@ function ScoreBreakdownSection({ lead, isScoring }: { lead: Lead; isScoring: boo
         <div className="relative h-20 w-20 shrink-0">
           <svg width="80" height="80" viewBox="0 0 80 80" className="-rotate-90">
             <circle cx="40" cy="40" r="34" fill="none" stroke="var(--border)" strokeWidth="5" />
-            {isScoring ? (
-              <circle
-                cx="40" cy="40" r="34" fill="none"
-                stroke="#818cf8"
-                strokeWidth="5"
-                strokeDasharray={`${0.3 * 2 * Math.PI * 34} ${2 * Math.PI * 34}`}
-                strokeLinecap="round"
-                className="animate-spin origin-center"
-                style={{ animationDuration: '1.8s' }}
-              />
-            ) : (
-              <circle
-                cx="40" cy="40" r="34" fill="none"
-                stroke={lead.score >= 80 ? '#10b981' : lead.score >= 50 ? '#f59e0b' : '#a1a1aa'}
-                strokeWidth="5"
-                strokeDasharray={`${(lead.score / 100) * 2 * Math.PI * 34} ${2 * Math.PI * 34}`}
-                strokeLinecap="round"
-              />
-            )}
+            <motion.circle
+              cx="40" cy="40" r="34" fill="none"
+              stroke={getScoreColor(lead.score)}
+              strokeWidth="5"
+              strokeLinecap="round"
+              strokeDasharray={`${2 * Math.PI * 34}`}
+              initial={{ strokeDashoffset: 2 * Math.PI * 34 }}
+              animate={{ strokeDashoffset: (1 - lead.score / 100) * 2 * Math.PI * 34 }}
+              transition={{ duration: 0.9, ease: 'easeOut' }}
+            />
           </svg>
-          {isScoring ? (
-            <span className="absolute inset-0 flex items-center justify-center text-xs font-medium text-indigo-400 text-center leading-tight">AI...</span>
-          ) : (
-            <span className={cn('absolute inset-0 flex items-center justify-center text-xl font-bold font-mono', getScoreColor(lead.score))}>
-              {lead.score}
-            </span>
-          )}
-        </div>
-        <div>
-          <p className="text-xs text-zinc-500 dark:text-zinc-400">AI Lead Score</p>
-          {isScoring ? (
-            <p className="text-sm font-medium text-indigo-500 animate-pulse">Analyzing business…</p>
-          ) : (
-            <p className={cn('text-lg font-semibold', getScoreColor(lead.score))}>
-              {lead.score >= 80 ? 'High Priority' : lead.score >= 50 ? 'Medium Priority' : 'Low Priority'}
-            </p>
-          )}
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 font-mono">ID: {lead.id}</p>
-        </div>
-      </div>
-
-      {/* Bar breakdown */}
-      <div className="space-y-2.5">
-        {barItems.map((item) => (
-          <div key={item.label}>
-            <div className="flex justify-between text-xs mb-1">
-              <span className="text-zinc-600 dark:text-zinc-400">{item.label}</span>
-              {isScoring ? (
-                <span className="font-mono font-medium text-indigo-400 animate-pulse">…</span>
-              ) : (
-                <span className="font-mono font-medium text-zinc-800 dark:text-zinc-200">{item.value}/{item.max}</span>
-              )}
-            </div>
-            <Progress value={isScoring ? 0 : (item.value / item.max) * 100} className="h-1.5" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            {isScoring ? (
+              <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />
+            ) : (
+              <span className="text-base font-bold" style={{ color: getScoreColor(lead.score) }}>
+                {lead.score}
+              </span>
+            )}
           </div>
-        ))}
+        </div>
+        <div className="flex-1 min-w-0">
+          {isScoring ? (
+            <div className="space-y-1.5">
+              {[80, 65, 72].map((w, i) => (
+                <div key={i} className="h-2 rounded bg-zinc-200 dark:bg-zinc-700 animate-pulse" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {barItems.map((item) => (
+                <div key={item.label}>
+                  <div className="flex justify-between items-center mb-0.5">
+                    <span className="text-[10px] text-zinc-500">{item.label}</span>
+                    <span className="text-[10px] font-semibold text-zinc-700 dark:text-zinc-300">{item.value}/{item.max}</span>
+                  </div>
+                  <Progress value={(item.value / item.max) * 100} className="h-1" />
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -166,53 +155,267 @@ function AIAnalysisSection({ text, isScoring }: { text: string; isScoring: boole
 }
 
 // ============================================================
-// Outreach Section
+// Contact Info Section — shows enriched contact data
+// ============================================================
+function ContactInfoSection({
+  lead,
+  onEmailChange,
+}: {
+  lead: Lead
+  onEmailChange: (email: string) => void
+}) {
+  const [editingEmail, setEditingEmail] = useState(false)
+  const [emailDraft, setEmailDraft] = useState(lead.contactEmail ?? '')
+  const [copied, setCopied] = useState(false)
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text).catch(() => {})
+    setCopied(true)
+    setTimeout(() => setCopied(false), 1500)
+  }
+
+  const handleEmailSave = () => {
+    onEmailChange(emailDraft)
+    setEditingEmail(false)
+  }
+
+  // Confidence display
+  const confidenceLabel = () => {
+    const src = lead.contactSource
+    if (!src || src === 'none') return null
+    if (src === 'osm_tag') return { text: 'From map data', color: 'text-emerald-600 dark:text-emerald-400' }
+    if (src === 'website_homepage') return { text: 'Scraped from homepage', color: 'text-blue-600 dark:text-blue-400' }
+    if (src === 'website_contact_page') return { text: 'Scraped from contact page', color: 'text-blue-600 dark:text-blue-400' }
+    if (src === 'manual') return { text: 'Manually entered', color: 'text-zinc-500' }
+    return null
+  }
+  const confLabel = confidenceLabel()
+
+  return (
+    <div className="space-y-2">
+      {/* Email row */}
+      <div className="flex items-start gap-2">
+        <AtSign className="h-4 w-4 text-zinc-400 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          {lead.isPreparing ? (
+            <div className="h-4 bg-zinc-200 dark:bg-zinc-700 animate-pulse rounded w-40" />
+          ) : lead.contactEmail ? (
+            editingEmail ? (
+              <div className="flex items-center gap-1.5">
+                <input
+                  autoFocus
+                  value={emailDraft}
+                  onChange={(e) => setEmailDraft(e.target.value)}
+                  className="text-sm bg-white dark:bg-zinc-800 border border-indigo-400 rounded px-2 py-0.5 w-full text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  onKeyDown={(e) => e.key === 'Enter' && handleEmailSave()}
+                />
+                <button onClick={handleEmailSave} className="text-emerald-500 hover:text-emerald-600">
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => setEditingEmail(false)} className="text-zinc-400 hover:text-zinc-600">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 group">
+                <a href={`mailto:${lead.contactEmail}`} className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-mono truncate">
+                  {lead.contactEmail}
+                </a>
+                <button
+                  onClick={() => handleCopy(lead.contactEmail!)}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-zinc-600"
+                  title="Copy email"
+                >
+                  {copied ? <Check className="h-3 w-3 text-emerald-500" /> : <Copy className="h-3 w-3" />}
+                </button>
+                <button
+                  onClick={() => { setEmailDraft(lead.contactEmail ?? ''); setEditingEmail(true) }}
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-zinc-400 hover:text-zinc-600"
+                  title="Edit email"
+                >
+                  <Edit2 className="h-3 w-3" />
+                </button>
+              </div>
+            )
+          ) : (
+            editingEmail ? (
+              <div className="flex items-center gap-1.5">
+                <input
+                  autoFocus
+                  placeholder="Enter email manually..."
+                  value={emailDraft}
+                  onChange={(e) => setEmailDraft(e.target.value)}
+                  className="text-sm bg-white dark:bg-zinc-800 border border-indigo-400 rounded px-2 py-0.5 w-full text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                  onKeyDown={(e) => e.key === 'Enter' && handleEmailSave()}
+                />
+                <button onClick={handleEmailSave} className="text-emerald-500 hover:text-emerald-600">
+                  <Check className="h-3.5 w-3.5" />
+                </button>
+                <button onClick={() => setEditingEmail(false)} className="text-zinc-400 hover:text-zinc-600">
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setEditingEmail(true)}
+                className="text-xs text-zinc-400 dark:text-zinc-500 flex items-center gap-1 hover:text-indigo-500 transition-colors"
+              >
+                <Mail className="h-3 w-3" />
+                Email not found — add manually
+              </button>
+            )
+          )}
+          {confLabel && !editingEmail && (
+            <span className={cn('text-[10px]', confLabel.color)}>
+              {confLabel.text}
+              {lead.contactConfidence !== undefined && lead.contactConfidence > 0 &&
+                ` · ${Math.round(lead.contactConfidence * 100)}% confidence`
+              }
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Address */}
+      <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+        <MapPin className="h-4 w-4 text-zinc-400 shrink-0" />
+        <span>{lead.address}, {lead.city}</span>
+      </div>
+
+      {/* Phone */}
+      {(lead.phone || lead.contactPhone) && (
+        <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
+          <Phone className="h-4 w-4 text-zinc-400 shrink-0" />
+          <span className="font-mono">{lead.contactPhone || lead.phone}</span>
+        </div>
+      )}
+
+      {/* Website */}
+      <div className="flex items-center gap-2 text-sm">
+        <Globe className="h-4 w-4 text-zinc-400 shrink-0" />
+        <Badge variant={lead.websiteStatus === 'none' ? 'warning' : 'secondary'}>
+          {lead.websiteStatus === 'none' ? 'No website detected' : lead.websiteStatus === 'outdated' ? 'Outdated site' : 'Has website'}
+        </Badge>
+        {(lead.websiteUrl || lead.website) && (
+          <a
+            href={lead.websiteUrl || lead.website}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-indigo-500 hover:underline flex items-center gap-0.5 truncate max-w-[180px]"
+          >
+            {lead.websiteUrl || lead.website} <ExternalLink className="h-3 w-3 shrink-0" />
+          </a>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ============================================================
+// Preparation loading overlay — shown while /prepare runs
+// ============================================================
+function PreparationBanner({ lead }: { lead: Lead }) {
+  const steps = [
+    { label: 'Enriching contact info…' },
+    { label: 'Generating outreach message…' },
+    { label: 'Drafting AI proposal…' },
+  ]
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: -8 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -8 }}
+      className="rounded-xl border border-indigo-200 dark:border-indigo-800 bg-indigo-50 dark:bg-indigo-950/60 p-4 space-y-3"
+    >
+      <div className="flex items-center gap-2">
+        <Loader2 className="h-4 w-4 text-indigo-500 animate-spin" />
+        <span className="text-sm font-semibold text-indigo-700 dark:text-indigo-400">
+          AI Agent preparing outreach for {lead.name}…
+        </span>
+      </div>
+      <div className="space-y-1.5 pl-6">
+        {steps.map((step, i) => (
+          <div key={i} className="flex items-center gap-2 text-xs text-indigo-500 dark:text-indigo-400">
+            <Loader2 className="h-3 w-3 animate-spin" style={{ animationDelay: `${i * 0.3}s` }} />
+            {step.label}
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
+// ============================================================
+// AI-Powered Outreach Section
 // ============================================================
 function OutreachSection({ lead }: { lead: Lead }) {
+  const updateLeadStore = useAppStore((s) => s.updateLead)
   const updateLeadOutreachStore = useAppStore((s) => s.updateLeadOutreach)
-  
-  const defaultMsg: OutreachMessage = useMemo(() => ({
-    id: 'default',
-    subject: `Digital Transformation for ${lead.name}`,
-    body: 'No message generated yet. Click "Regenerate with AI" to create one.',
-    status: 'draft',
-    createdAt: new Date().toISOString()
-  }), [lead.name])
 
-  const [currentMsg, setCurrentMsg] = useState<OutreachMessage>(
-    lead.outreachMessages?.[0] || defaultMsg
-  )
-  const [editedBody, setEditedBody] = useState(currentMsg.body)
+  // Use the AI-generated fields first, fall back to outreachMessages[0]
+  const firstMsg = lead.outreachMessages?.[0]
+  const [subject, setSubject] = useState(lead.outreachSubject ?? firstMsg?.subject ?? '')
+  const [body, setBody] = useState(lead.outreachBody ?? firstMsg?.body ?? '')
+  const [recipientEmail, setRecipientEmail] = useState(lead.contactEmail ?? '')
+
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isSending, setIsSending] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [sentSuccess, setSentSuccess] = useState(false)
+  const [savedSuccess, setSavedSuccess] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  // When lead data updates (after prepare completes), refresh local state
+  useEffect(() => {
+    if (lead.outreachSubject && lead.outreachSubject !== subject) {
+      setSubject(lead.outreachSubject)
+    }
+    if (lead.outreachBody && lead.outreachBody !== body) {
+      setBody(lead.outreachBody)
+    }
+    if (lead.contactEmail && !recipientEmail) {
+      setRecipientEmail(lead.contactEmail)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lead.outreachSubject, lead.outreachBody, lead.contactEmail])
 
   const handleRegenerate = async () => {
     setIsRegenerating(true)
+    setError(null)
     try {
-      const msg = await generateOutreach(lead.id)
-      setCurrentMsg(msg)
-      setEditedBody(msg.body)
-      updateLeadOutreachStore(lead.id, msg)
+      const result = await prepareLead(lead.id, true)
+      if (result.lead.outreachSubject) setSubject(result.lead.outreachSubject)
+      if (result.lead.outreachBody) setBody(result.lead.outreachBody)
+      updateLeadStore(lead.id, result.lead)
+      // Also push into outreach messages list for legacy dashboard compatibility
+      if (result.lead.outreachSubject && result.lead.outreachBody) {
+        updateLeadOutreachStore(lead.id, {
+          subject: result.lead.outreachSubject,
+          body: result.lead.outreachBody,
+          status: 'draft',
+          generatedAt: new Date().toISOString(),
+        })
+      }
     } catch (e) {
-      console.error(e)
+      setError(e instanceof Error ? e.message : 'Regeneration failed')
     } finally {
       setIsRegenerating(false)
     }
   }
 
   const handleSend = async () => {
+    if (!body.trim()) return
     setIsSending(true)
+    setError(null)
     try {
-      const updatedMsg = { ...currentMsg, body: editedBody, status: 'sent' as const }
-      await sendOutreach(lead.id, updatedMsg)
-      updateLeadOutreachStore(lead.id, updatedMsg)
-      setCurrentMsg(updatedMsg)
+      const msg: OutreachMessage = { subject, body, status: 'sent' }
+      await sendOutreach(lead.id, msg, recipientEmail)
+      updateLeadStore(lead.id, { outreachStatus: 'sent', outreachSentAt: new Date().toISOString() })
+      updateLeadOutreachStore(lead.id, { ...msg })
       setSentSuccess(true)
-      setTimeout(() => setSentSuccess(false), 3000)
+      setTimeout(() => setSentSuccess(false), 3500)
     } catch (e) {
-      console.error(e)
+      setError(e instanceof Error ? e.message : 'Send failed')
     } finally {
       setIsSending(false)
     }
@@ -220,71 +423,140 @@ function OutreachSection({ lead }: { lead: Lead }) {
 
   const handleSaveDraft = async () => {
     setIsSaving(true)
+    setError(null)
     try {
-      const updatedMsg = { ...currentMsg, body: editedBody, status: 'draft' as const }
-      await saveDraft(lead.id, updatedMsg)
-      updateLeadOutreachStore(lead.id, updatedMsg)
-      setCurrentMsg(updatedMsg)
+      await saveDraft(lead.id, { subject, body })
+      updateLeadStore(lead.id, { outreachSubject: subject, outreachBody: body, outreachStatus: 'draft' })
+      setSavedSuccess(true)
+      setTimeout(() => setSavedSuccess(false), 2000)
     } catch (e) {
-      console.error(e)
+      setError(e instanceof Error ? e.message : 'Save failed')
     } finally {
       setIsSaving(false)
     }
   }
 
+  const isPreparing = !!lead.isPreparing
+  const hasContent = !!(subject || body)
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">Outreach Message</p>
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">Outreach Message</p>
+          {lead.outreachStatus === 'sent' && (
+            <Badge variant="success" className="text-[10px] py-0 px-1.5">Sent</Badge>
+          )}
+          {lead.outreachGeneratedAt && lead.outreachStatus !== 'sent' && (
+            <Badge variant="secondary" className="text-[10px] py-0 px-1.5">AI Draft</Badge>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={handleRegenerate}
+          disabled={isPreparing}
           isLoading={isRegenerating}
           className="h-7 text-xs gap-1.5"
         >
           <RefreshCw className="h-3 w-3" />
-          Regenerate with AI
+          {hasContent ? 'Regenerate' : 'Generate with AI'}
         </Button>
       </div>
 
-      <div className="space-y-2">
-        <div>
-          <p className="text-xs text-zinc-400 mb-1">Subject</p>
-          <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200 bg-zinc-50 dark:bg-zinc-800 rounded-md px-3 py-2">
-            {currentMsg.subject}
+      {error && (
+        <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 rounded-lg px-3 py-2">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          {error}
+        </div>
+      )}
+
+      {isPreparing ? (
+        <div className="space-y-2">
+          <div className="h-8 bg-zinc-200 dark:bg-zinc-700 animate-pulse rounded" />
+          <div className="h-28 bg-zinc-200 dark:bg-zinc-700 animate-pulse rounded" />
+        </div>
+      ) : hasContent ? (
+        <div className="space-y-2.5">
+          {/* Recipient email */}
+          <div>
+            <p className="text-xs text-zinc-400 mb-1">Recipient email</p>
+            <div className="relative">
+              <Mail className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+              <input
+                type="email"
+                value={recipientEmail}
+                onChange={(e) => setRecipientEmail(e.target.value)}
+                placeholder="contact@business.com"
+                className="w-full text-sm bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md pl-8 pr-3 py-2 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+              />
+            </div>
+          </div>
+
+          {/* Subject line */}
+          <div>
+            <p className="text-xs text-zinc-400 mb-1">Subject line</p>
+            <input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              className="w-full text-sm font-medium bg-zinc-50 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md px-3 py-2 text-zinc-800 dark:text-zinc-200 focus:outline-none focus:ring-2 focus:ring-indigo-400"
+            />
+          </div>
+
+          {/* Body */}
+          <div>
+            <p className="text-xs text-zinc-400 mb-1">Message body (editable)</p>
+            <Textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              rows={9}
+              className="text-sm"
+            />
+          </div>
+
+          <div className="flex gap-2">
+            <Button
+              onClick={handleSend}
+              isLoading={isSending}
+              disabled={!body.trim() || sentSuccess}
+              size="sm"
+              className="gap-1.5 flex-1"
+            >
+              {sentSuccess ? (
+                <><CheckCircle2 className="h-4 w-4" /> Sent!</>
+              ) : (
+                <><Send className="h-4 w-4" /> Approve &amp; Send</>
+              )}
+            </Button>
+            <Button
+              onClick={handleSaveDraft}
+              isLoading={isSaving}
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+            >
+              {savedSuccess ? (
+                <><CheckCircle2 className="h-4 w-4 text-emerald-500" /> Saved</>
+              ) : (
+                <><Save className="h-4 w-4" /> Save Draft</>
+              )}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 px-4 py-6 text-center">
+          <Mail className="h-8 w-8 text-zinc-300 dark:text-zinc-600 mx-auto mb-2" />
+          <p className="text-xs text-zinc-400 dark:text-zinc-500">
+            AI is preparing a personalised outreach message for {lead.name}…
           </p>
         </div>
-        <div>
-          <p className="text-xs text-zinc-400 mb-1">Message body (editable)</p>
-          <Textarea
-            value={editedBody}
-            onChange={(e) => setEditedBody(e.target.value)}
-            rows={8}
-            className="text-sm"
-          />
-        </div>
-      </div>
-
-      <div className="flex gap-2">
-        <Button onClick={handleSend} isLoading={isSending} size="sm" className="gap-1.5 flex-1">
-          {sentSuccess ? (
-            <><CheckCircle2 className="h-4 w-4" /> Sent!</>
-          ) : (
-            <><Send className="h-4 w-4" /> Approve & Send</>
-          )}
-        </Button>
-        <Button onClick={handleSaveDraft} isLoading={isSaving} variant="outline" size="sm" className="gap-1.5">
-          <Save className="h-4 w-4" />
-          Save Draft
-        </Button>
-      </div>
+      )}
     </div>
   )
 }
 
 // ============================================================
-// Proposal Section
+// AI Proposal Section
 // ============================================================
 const STATUSES_LIST: Proposal['status'][] = ['draft', 'submitted', 'reviewed', 'replied', 'accepted', 'rejected']
 
@@ -301,33 +573,33 @@ function ProposalSection({ lead }: { lead: Lead }) {
   const proposals = useAppStore((s) => s.proposals)
   const addProposal = useAppStore((s) => s.addProposal)
   const updateProposalStatusStore = useAppStore((s) => s.updateProposalStatus)
-  
+
   const existingProposal = useMemo(() => proposals.find(p => p.leadId === lead.id), [proposals, lead.id])
 
-  const [isGenerating, setIsGenerating] = useState(false)
+  // Use auto-generated content first, then fall back to saved proposal
+  const [proposalTitle, setProposalTitle] = useState(
+    existingProposal?.title || `AI Proposal — ${lead.name}`
+  )
+  const [proposalContent, setProposalContent] = useState(
+    lead.proposalContent || existingProposal?.content || ''
+  )
+
   const [isSaving, setIsSaving] = useState(false)
   const [savedOk, setSavedOk] = useState(false)
-  const [proposalTitle, setProposalTitle] = useState(existingProposal?.title || '')
-  const [proposalContent, setProposalContent] = useState(existingProposal?.content || '')
   const [error, setError] = useState<string | null>(null)
 
-  const handleGenerate = async () => {
-    setIsGenerating(true)
-    setError(null)
-    try {
-      const result = await generateProposalApi(lead.id)
-      setProposalTitle(result.title)
-      setProposalContent(result.content)
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Generation failed')
-    } finally {
-      setIsGenerating(false)
+  // When proposal content arrives from /prepare, populate editors
+  useEffect(() => {
+    if (lead.proposalContent && !proposalContent) {
+      setProposalContent(lead.proposalContent)
     }
-  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lead.proposalContent])
 
   const handleSave = async () => {
     if (!proposalTitle || !proposalContent) return
     setIsSaving(true)
+    setError(null)
     try {
       const saved = await saveProposalApi({
         leadId: lead.id,
@@ -351,33 +623,37 @@ function ProposalSection({ lead }: { lead: Lead }) {
     try {
       await updateProposalStatusApi(existingProposal.id, newStatus)
     } catch (err) {
-      console.error('Failed to update status on server:', err)
-      // Rollback
+      console.error('Failed to update proposal status:', err)
       updateProposalStatusStore(existingProposal.id, existingProposal.status)
     }
   }
 
+  const hasContent = !!(proposalContent || existingProposal?.content)
+
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">AI Proposal</p>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleGenerate}
-          isLoading={isGenerating}
-          className="h-7 text-xs gap-1.5 text-indigo-600 hover:text-indigo-700"
-        >
-          <Sparkles className="h-3 w-3" />
-          {(proposalContent || existingProposal) ? 'Regenerate' : 'Generate Proposal'}
-        </Button>
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide">AI Proposal</p>
+          {lead.proposalGeneratedAt && (
+            <Badge variant="secondary" className="text-[10px] py-0 px-1.5">AI Draft</Badge>
+          )}
+        </div>
       </div>
 
       {error && (
-        <p className="text-xs text-red-500 bg-red-50 dark:bg-red-950 rounded-md px-3 py-2">{error}</p>
+        <div className="flex items-center gap-2 text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/60 rounded-lg px-3 py-2">
+          <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+          {error}
+        </div>
       )}
 
-      {(proposalContent || existingProposal) ? (
+      {lead.isPreparing ? (
+        <div className="space-y-2">
+          <div className="h-7 bg-zinc-200 dark:bg-zinc-700 animate-pulse rounded" />
+          <div className="h-40 bg-zinc-200 dark:bg-zinc-700 animate-pulse rounded" />
+        </div>
+      ) : hasContent ? (
         <div className="space-y-3.5">
           {/* Status workflow dropdown if already saved */}
           {existingProposal && (
@@ -445,7 +721,7 @@ function ProposalSection({ lead }: { lead: Lead }) {
         <div className="rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 px-4 py-6 text-center">
           <Sparkles className="h-8 w-8 text-indigo-300 mx-auto mb-2" />
           <p className="text-xs text-zinc-400 dark:text-zinc-500">
-            Click "Generate Proposal" to create a customized AI-written business proposal for this lead.
+            AI is generating a customised proposal for this lead…
           </p>
         </div>
       )}
@@ -454,17 +730,18 @@ function ProposalSection({ lead }: { lead: Lead }) {
 }
 
 // ============================================================
-// Lead Detail Panel
+// Lead Detail Panel — main sheet
 // ============================================================
 export function LeadDetailPanel() {
   const selectedLeadId = useAppStore((s) => s.selectedLeadId)
   const setSelectedLeadId = useAppStore((s) => s.setSelectedLeadId)
   const updateLeadStageStore = useAppStore((s) => s.updateLeadStage)
+  const updateLeadStore = useAppStore((s) => s.updateLead)
+  const addProposal = useAppStore((s) => s.addProposal)
   const leads = useAppStore((s) => s.leads)
   const discoveryResults = useAppStore((s) => s.discoveryResults)
-  const updateLeadScoreStore = useAppStore((s) => s.updateLeadScore)
 
-  // Search in both the main leads list AND discovery results
+  // Look up lead from both lists
   const lead = useMemo(
     () =>
       leads.find((l) => l.id === selectedLeadId) ??
@@ -473,34 +750,63 @@ export function LeadDetailPanel() {
     [leads, discoveryResults, selectedLeadId]
   )
 
-  // Auto-trigger AI scoring when the lead has no score yet
-  const [isScoring, setIsScoring] = useState(false)
-  const scoredLeadRef = useRef<string | null>(null) // track which lead we already scored
+  // ── Auto-prepare: run /prepare when panel opens for a lead without content ──
+  const preparedLeadRef = useRef<string | null>(null)
 
   useEffect(() => {
-    // Only score if: lead is loaded, score is 0, and we haven't already started scoring for this lead
-    if (!lead || lead.score > 0 || scoredLeadRef.current === lead.id) return
+    if (!lead || preparedLeadRef.current === lead.id) return
 
-    scoredLeadRef.current = lead.id
-    setIsScoring(true)
+    // Skip if already has both outreach and proposal content
+    const alreadyPrepared = !!(lead.outreachBody && lead.proposalContent)
+    if (alreadyPrepared) {
+      preparedLeadRef.current = lead.id
+      return
+    }
 
-    scoreLeadApi(lead.id)
-      .then((scoreData) => {
-        if (scoreData) {
-          // Backend returned the score row directly – update store immediately
-          updateLeadScoreStore(lead.id, scoreData)
+    preparedLeadRef.current = lead.id
+
+    // Mark as preparing in store so child sections show skeletons
+    updateLeadStore(lead.id, { isPreparing: true })
+
+    prepareLead(lead.id)
+      .then((result) => {
+        updateLeadStore(lead.id, { ...result.lead, isPreparing: false })
+        // If a proposal was returned from the backend, persist it via addProposal
+        if (result.proposalContent) {
+          addProposal({
+            id: `ai-${lead.id}`,
+            leadId: lead.id,
+            title: result.proposalTitle || `AI Proposal — ${lead.name}`,
+            content: result.proposalContent,
+            status: 'draft',
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          })
         }
-        // The Supabase realtime subscription will also fire and update the store,
-        // which will cause lead.score to become > 0 and re-render.
+        if (result.partialError) {
+          console.warn('[Prepare] Partial error:', result.partialError)
+        }
       })
-      .catch(console.error)
-      .finally(() => setIsScoring(false))
-  }, [lead?.id, lead?.score]) // eslint-disable-line react-hooks/exhaustive-deps
+      .catch((err) => {
+        console.error('[Prepare] Failed:', err)
+        updateLeadStore(lead.id, { isPreparing: false, lastError: err instanceof Error ? err.message : 'Preparation failed' })
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lead?.id])
 
-  // Reset scored ref when panel closes
+  // Reset ref when panel closes
   useEffect(() => {
-    if (!selectedLeadId) scoredLeadRef.current = null
+    if (!selectedLeadId) preparedLeadRef.current = null
   }, [selectedLeadId])
+
+  // Handle manual email entry
+  const handleEmailChange = (email: string) => {
+    if (!lead) return
+    updateLeadStore(lead.id, {
+      contactEmail: email,
+      contactSource: 'manual',
+    })
+  }
 
   const handleStageChange = async (stage: PipelineStage) => {
     if (!lead) return
@@ -508,9 +814,8 @@ export function LeadDetailPanel() {
     updateLeadStageStore(lead.id, stage)
   }
 
-
   return (
-    <Sheet open={!!selectedLeadId} onClose={() => setSelectedLeadId(null)} width="w-[540px]">
+    <Sheet open={!!selectedLeadId} onClose={() => setSelectedLeadId(null)} width="w-[560px]">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-white dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 px-5 py-4 flex items-start justify-between">
         {!lead ? (
@@ -545,30 +850,21 @@ export function LeadDetailPanel() {
           </div>
         ) : (
           <>
-            {/* Contact info */}
-            <div className="space-y-1.5">
-              <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                <MapPin className="h-4 w-4 text-zinc-400 shrink-0" />
-                <span>{lead.address}, {lead.city}</span>
+            {/* Preparation banner — shown while /prepare is running */}
+            <AnimatePresence>
+              {lead.isPreparing && <PreparationBanner lead={lead} />}
+            </AnimatePresence>
+
+            {/* Partial error banner */}
+            {lead.lastError && !lead.isPreparing && (
+              <div className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 rounded-lg px-3 py-2">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                Partial enrichment: {lead.lastError}
               </div>
-              {lead.phone && (
-                <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400">
-                  <Phone className="h-4 w-4 text-zinc-400 shrink-0" />
-                  <span className="font-mono">{lead.phone}</span>
-                </div>
-              )}
-              <div className="flex items-center gap-2 text-sm">
-                <Globe className="h-4 w-4 text-zinc-400 shrink-0" />
-                <Badge variant={lead.websiteStatus === 'none' ? 'warning' : 'secondary'}>
-                  {lead.websiteStatus === 'none' ? 'No website detected' : lead.websiteStatus === 'outdated' ? 'Outdated site' : 'Has website'}
-                </Badge>
-                {lead.websiteUrl && (
-                  <a href="#" className="text-xs text-indigo-500 hover:underline flex items-center gap-0.5">
-                    {lead.websiteUrl} <ExternalLink className="h-3 w-3" />
-                  </a>
-                )}
-              </div>
-            </div>
+            )}
+
+            {/* Contact info — enriched */}
+            <ContactInfoSection lead={lead} onEmailChange={handleEmailChange} />
 
             <Separator />
 
@@ -583,22 +879,22 @@ export function LeadDetailPanel() {
             {/* Score Breakdown */}
             <div>
               <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wide mb-3">Score Breakdown</p>
-              <ScoreBreakdownSection lead={lead} isScoring={isScoring} />
+              <ScoreBreakdownSection lead={lead} isScoring={false} />
             </div>
 
             <Separator />
 
             {/* AI Analysis */}
-            <AIAnalysisSection text={lead.aiAnalysis} isScoring={isScoring} />
+            <AIAnalysisSection text={lead.aiAnalysis} isScoring={false} />
 
             <Separator />
 
-            {/* Outreach */}
+            {/* Outreach — auto-populated */}
             <OutreachSection key={lead.id} lead={lead} />
 
             <Separator />
 
-            {/* Proposal */}
+            {/* Proposal — auto-populated */}
             <ProposalSection key={`prop-${lead.id}`} lead={lead} />
           </>
         )}

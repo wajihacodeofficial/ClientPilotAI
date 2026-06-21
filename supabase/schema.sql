@@ -98,7 +98,34 @@ CREATE TABLE IF NOT EXISTS leads (
     raw_osm_tags JSONB,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (workspace_id, osm_id)
+    UNIQUE (workspace_id, osm_id),
+    
+    -- Lead contact enrichment fields
+    contact_email TEXT,
+    contact_phone TEXT,
+    website TEXT,
+    contact_source TEXT,
+    contact_confidence DOUBLE PRECISION,
+    
+    -- Outreach fields
+    outreach_subject TEXT,
+    outreach_body TEXT,
+    outreach_status TEXT DEFAULT 'draft',
+    outreach_generated_at TIMESTAMPTZ,
+    outreach_approved_at TIMESTAMPTZ,
+    outreach_sent_at TIMESTAMPTZ,
+    
+    -- Proposal fields
+    proposal_content TEXT,
+    proposal_status TEXT DEFAULT 'draft',
+    proposal_generated_at TIMESTAMPTZ,
+    proposal_approved_at TIMESTAMPTZ,
+    
+    -- Metadata
+    last_ai_model TEXT,
+    last_enrichment_run_at TIMESTAMPTZ,
+    last_error TEXT,
+    review_notes TEXT
 );
 
 -- Enable RLS on leads

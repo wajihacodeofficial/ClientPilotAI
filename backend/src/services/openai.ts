@@ -59,33 +59,56 @@ Score the lead based on their likely need for our services. Businesses without w
   }
 };
 
+export interface OutreachOutput {
+  subject: string;
+  body: string;
+  follow_up: string;
+  whatsapp_body: string;
+}
+
+const OutreachResponseSchema = z.object({
+  subject: z.string(),
+  body: z.string(),
+  follow_up: z.string(),
+  whatsapp_body: z.string(),
+});
+
 export const generateOutreach = async (
   businessName: string,
   category: string,
   scoreReasoning: string
-): Promise<{ subject: string; body: string } | null> => {
+): Promise<OutreachOutput | null> => {
   try {
-    const prompt = `Write a personalized, professional, and concise cold outreach email to this business owner offering our software/web development services.
-
+    const prompt = `Write a personalized, professional, and concise cold outreach package to this business owner offering our software/web development services.
+    
 Business Name: ${businessName}
 Category: ${category}
 Why they are a good lead: ${scoreReasoning}
 
-The email should be friendly, not overly salesy, and highlight the specific value we could bring based on the reasoning provided. Return the result as a JSON object with 'subject' and 'body' fields.`;
+The outreach should be friendly, not overly salesy, and highlight the specific value we could bring based on the reasoning provided.
+
+For this business, generate:
+1. An email subject line.
+2. A professional email message body.
+3. A short, concise follow-up email version (for a secondary touchpoint).
+4. A quick WhatsApp or short text outreach message variant (short, casual, action-oriented).
+
+Return the result as a JSON object matching this schema: {"subject": "...", "body": "...", "follow_up": "...", "whatsapp_body": "..."}`;
 
     const model = genAI.getGenerativeModel({
       model: 'gemini-2.5-flash',
       generationConfig: {
         responseMimeType: 'application/json',
       },
-      systemInstruction: 'You are an expert sales copywriter. Output JSON only: {"subject": "...", "body": "..."}'
+      systemInstruction: 'You are an expert sales copywriter. Output JSON only: {"subject": "...", "body": "...", "follow_up": "...", "whatsapp_body": "..."}'
     });
 
     const response = await model.generateContent(prompt);
     const content = response.response.text();
     if (!content) return null;
 
-    return JSON.parse(content) as { subject: string; body: string };
+    const parsed = JSON.parse(content);
+    return OutreachResponseSchema.parse(parsed);
   } catch (error) {
     console.error('Gemini Outreach Generation Error:', error);
     return null;
@@ -122,13 +145,24 @@ Create a customized proposal. Do NOT use a generic, static template. If the busi
 
 Output MUST be a JSON object with two fields:
 - "title": A compelling, specific proposal title (e.g. "Digital Transformation Proposal for Al Madina Bakery").
-- "content": The proposal content written in clean, professional markdown format, including sections like:
-  - Executive Summary
-  - Digital Presence Review (identifying gaps)
-  - Tailored Solution Proposal (specific features like booking, WhatsApp, menu, etc.)
-  - Scope of Work & Milestones
-  - About Our Agency (Acme Software Agency)
-  - Call to Action / Next Steps
+- "content": The proposal content written in clean, professional markdown format. The proposal content MUST include precisely these sections:
+  # Executive Summary / Business Overview
+  (Brief background and overview of the business)
+  
+  # Current Opportunity / Pain Points
+  (Detailing identified gaps, lack of website, review issues, or missed digital opportunities)
+  
+  # Recommended Digital Solution
+  (Explain what services are relevant: web design, booking system, online ordering, SEO, etc.)
+  
+  # Proposed Services & Deliverables
+  (Specific deliverables, milestones, and what is included in the solution scope)
+  
+  # Expected Outcomes & Benefits
+  (Expected business impact, more clients, local prominence, automation benefits)
+  
+  # Optional Estimated Next Steps
+  (How to get started, consultation call, etc.)
 
 Return the result as a JSON object matching this schema: {"title": "...", "content": "..."}`;
 
