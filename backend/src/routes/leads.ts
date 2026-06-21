@@ -31,7 +31,6 @@ router.get('/', async (req, res) => {
   const user = req.user!;
   
   try {
-    // Get user's workspace_id from profiles
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('workspace_id')
@@ -40,9 +39,6 @@ router.get('/', async (req, res) => {
 
     if (!profile?.workspace_id) return res.status(403).json({ error: 'No workspace found' });
 
-    // Fetch real leads for this workspace. Pipeline stage is stored as
-    // append-only history in pipeline_stages, so we merge the latest stage
-    // into each lead before returning it to the frontend.
     const { data: leads, error } = await supabaseAdmin
       .from('leads')
       .select(`
@@ -101,7 +97,6 @@ router.post('/discover', async (req, res) => {
 
     if (!profile?.workspace_id) return res.status(403).json({ error: 'No workspace found' });
 
-    // 1. Skip geocoding if lat/lng are provided, else query Nominatim
     let discovery;
     if (lat !== undefined && lng !== undefined) {
       const result = await searchNearbyBusinesses({
@@ -114,11 +109,7 @@ router.post('/discover', async (req, res) => {
       const displayName = location || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
       discovery = {
         ...result,
-        geocodedLocation: {
-          lat,
-          lng,
-          displayName,
-        }
+        geocodedLocation: { lat, lng, displayName },
       };
     } else if (location) {
       discovery = await discoverBusinessesByLocation({
@@ -142,7 +133,6 @@ router.post('/discover', async (req, res) => {
       });
     }
 
-    // 4. Process & Insert Leads
     const newLeads = [];
     for (const business of discovery.businesses) {
       const category = inferLeadCategory(categories, business.category, business.type);
@@ -171,7 +161,6 @@ router.post('/discover', async (req, res) => {
         }
       };
 
-      // Upsert to avoid duplicates, returning representation
       const { data: inserted, error } = await supabaseAdmin
         .from('leads')
         .upsert(leadData, { onConflict: 'workspace_id,osm_id' })
@@ -180,8 +169,7 @@ router.post('/discover', async (req, res) => {
 
       if (!error && inserted) {
         newLeads.push(inserted);
-        
-        // 5. Async trigger OpenAI scoring (do not await)
+        // Async AI scoring — does not block response
         scoreLeadAsync(inserted.id, leadData.business_name, category, leadData.address, hasWebsite).catch(console.error);
       }
     }
@@ -204,7 +192,7 @@ router.post('/discover', async (req, res) => {
   }
 });
 
-// Helper for async scoring
+// Helper for async scoring (fire-and-forget, does not block discovery response)
 async function scoreLeadAsync(leadId: string, name: string, category: string, address: string, hasWebsite: boolean) {
   const score = await scoreLead(name, category, address, hasWebsite);
   if (score) {
@@ -231,7 +219,7 @@ router.post('/:id/score', async (req, res) => {
     if (!lead) return res.status(404).json({ error: 'Lead not found' });
 
     const score = await scoreLead(lead.business_name, lead.category, lead.address || '', lead.has_website);
-    if (!score) return res.status(500).json({ error: 'Scoring failed' });
+    if (!score) return res.status(500).json({ error: 'Scoring failed — check server logs for [AI:ScoreLead] errors' });
 
     const { data: updated } = await supabaseAdmin.from('lead_scores').upsert({
       lead_id: id,
@@ -256,7 +244,11 @@ router.post('/:id/outreach', async (req, res) => {
     const reasoning = lead.lead_scores?.[0]?.ai_reasoning || 'They lack a digital presence.';
     const outreach = await generateOutreach(lead.business_name, lead.category, reasoning);
     
-    if (!outreach) return res.status(500).json({ error: 'Generation failed' });
+    if (!outreach) {
+      return res.status(500).json({
+        error: 'Outreach generation failed — check server logs for [AI:Outreach] errors. Common causes: invalid GEMINI_API_KEY, quota exceeded, or network issue.',
+      });
+    }
 
     const { data: saved } = await supabaseAdmin.from('outreach_messages').insert({
       lead_id: id,
@@ -276,7 +268,7 @@ router.post('/:id/outreach', async (req, res) => {
 router.patch('/:id/stage', async (req, res) => {
   try {
     const { id } = req.params;
-    const { stage } = req.body; // e.g. 'contacted'
+    const { stage } = req.body;
     const user = req.user!;
 
     const { data: profile } = await supabaseAdmin.from('profiles').select('workspace_id').eq('id', user.sub).single();
@@ -284,7 +276,6 @@ router.patch('/:id/stage', async (req, res) => {
       return res.status(403).json({ error: 'No workspace found' });
     }
 
-    // Insert pipeline history
     const { data: history, error } = await supabaseAdmin.from('pipeline_stages').insert({
       lead_id: id,
       workspace_id: profile.workspace_id,
@@ -307,6 +298,8 @@ router.post('/:id/prepare', async (req, res) => {
     const { id } = req.params;
     const force: boolean = req.body?.force === true;
 
+    console.log(`[Prepare:${id}] ── Request received (force=${force}, user=${user.sub}) ──`);
+
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('workspace_id')
@@ -326,22 +319,24 @@ router.post('/:id/prepare', async (req, res) => {
       .single();
 
     if (leadErr || !lead) {
+      console.warn(`[Prepare:${id}] Lead not found. DB error: ${leadErr?.message}`);
       return res.status(404).json({ error: 'Lead not found in your workspace' });
     }
+
+    console.log(`[Prepare:${id}] Lead loaded: "${lead.business_name}" | Category: ${lead.category} | Has website: ${lead.has_website}`);
 
     const now = new Date().toISOString();
     const updates: Record<string, unknown> = {};
     let lastError: string | null = null;
 
     // ── Step A: Contact Enrichment ───────────────────────────────────────
-    // Only enrich if: forced, or never enriched before, or no email found yet
     const needsEnrichment = force || !lead.last_enrichment_run_at;
     if (needsEnrichment) {
+      console.log(`[Prepare:${id}] → Starting contact enrichment (website: ${lead.website_url ?? 'none'})...`);
       try {
         const rawOsmTags = (lead.raw_osm_tags as Record<string, unknown>) || {};
         const enrichment = await enrichLeadContact(lead.website_url, rawOsmTags);
 
-        // Respect manually verified emails: only overwrite if the existing source is weaker
         const existingSource = lead.contact_source as string | null;
         const manuallyVerified = existingSource === 'manual';
         if (!manuallyVerified) {
@@ -350,7 +345,6 @@ router.post('/:id/prepare', async (req, res) => {
             updates.contact_source = enrichment.source;
             updates.contact_confidence = enrichment.confidence;
           } else if (!lead.contact_email) {
-            // Mark as not found so the UI can display an appropriate state
             updates.contact_email = null;
             updates.contact_source = 'none';
             updates.contact_confidence = 0;
@@ -363,10 +357,13 @@ router.post('/:id/prepare', async (req, res) => {
           updates.website = enrichment.website;
         }
         updates.last_enrichment_run_at = now;
+        console.log(`[Prepare:${id}] ✅ Enrichment done. Email: ${enrichment.email ?? 'not found'} | Source: ${enrichment.source}`);
       } catch (enrichErr) {
         lastError = enrichErr instanceof Error ? enrichErr.message : 'Enrichment failed';
-        console.error('[Prepare] Enrichment error:', enrichErr);
+        console.error(`[Prepare:${id}] ❌ Enrichment error:`, enrichErr);
       }
+    } else {
+      console.log(`[Prepare:${id}] Skipping enrichment — already ran at ${lead.last_enrichment_run_at}`);
     }
 
     // ── Step B: AI Content Generation ───────────────────────────────────
@@ -378,8 +375,13 @@ router.post('/:id/prepare', async (req, res) => {
       const aiReasoning = (lead.lead_scores as { ai_reasoning?: string }[])?.[0]?.ai_reasoning
         || 'This business lacks a modern digital presence and would benefit from our services.';
 
-      // Generate outreach if missing or forced
+      console.log(`[Prepare:${id}] ── AI Generation ──`);
+      console.log(`[Prepare:${id}] Needs outreach: ${force || !alreadyHasOutreach} | Needs proposal: ${force || !alreadyHasProposal}`);
+      console.log(`[Prepare:${id}] AI reasoning snippet: "${aiReasoning.slice(0, 100)}"`);
+
+      // ── Outreach generation ──────────────────────────────────────────
       if (force || !alreadyHasOutreach) {
+        console.log(`[Prepare:${id}] → Requesting outreach from Gemini...`);
         try {
           const outreach = await generateOutreach(lead.business_name, lead.category, aiReasoning);
           if (outreach) {
@@ -388,25 +390,37 @@ router.post('/:id/prepare', async (req, res) => {
             updates.outreach_status = 'draft';
             updates.outreach_generated_at = now;
             updates.last_ai_model = 'gemini-2.5-flash';
+            console.log(`[Prepare:${id}] ✅ Outreach generated. Subject: "${outreach.subject}"`);
 
-            // Also insert into outreach_messages for dashboard compatibility
-            await supabaseAdmin.from('outreach_messages').upsert({
+            // Mirror into outreach_messages for dashboard compatibility
+            const { error: omErr } = await supabaseAdmin.from('outreach_messages').upsert({
               lead_id: id,
               subject: outreach.subject,
               content: outreach.body,
               status: 'draft',
               generated_by_ai: true,
               updated_at: now,
-            }, { onConflict: 'lead_id' }).select().single();
+            }, { onConflict: 'lead_id' });
+
+            if (omErr) {
+              console.warn(`[Prepare:${id}] ⚠️  outreach_messages DB write failed: ${omErr.message}`);
+            } else {
+              console.log(`[Prepare:${id}] ✅ outreach_messages saved to Supabase`);
+            }
+          } else {
+            const msg = 'Outreach generation returned null — Gemini call may have failed or returned empty. Check [AI:Outreach] logs above.';
+            lastError = msg;
+            console.error(`[Prepare:${id}] ❌ ${msg}`);
           }
         } catch (outreachErr) {
-          lastError = outreachErr instanceof Error ? outreachErr.message : 'Outreach generation failed';
-          console.error('[Prepare] Outreach generation error:', outreachErr);
+          lastError = outreachErr instanceof Error ? outreachErr.message : 'Outreach generation threw an exception';
+          console.error(`[Prepare:${id}] ❌ Outreach exception:`, outreachErr);
         }
       }
 
-      // Generate proposal if missing or forced
+      // ── Proposal generation ──────────────────────────────────────────
       if (force || !alreadyHasProposal) {
+        console.log(`[Prepare:${id}] → Requesting proposal from Gemini...`);
         try {
           const proposal = await generateProposal(
             lead.business_name,
@@ -421,27 +435,45 @@ router.post('/:id/prepare', async (req, res) => {
             updates.proposal_content = proposal.content;
             updates.proposal_status = 'draft';
             updates.proposal_generated_at = now;
+            console.log(`[Prepare:${id}] ✅ Proposal generated. Title: "${proposal.title}"`);
 
-            // Also upsert into proposals table for dashboard compatibility
-            await supabaseAdmin.from('proposals').upsert({
+            // Upsert into proposals table for dashboard compatibility
+            const { error: propErr } = await supabaseAdmin.from('proposals').upsert({
               lead_id: id,
               workspace_id: profile.workspace_id,
               title: proposal.title,
               content: proposal.content,
               status: 'draft',
               updated_at: now,
-            }, { onConflict: 'workspace_id,lead_id' }).select().single();
+            }, { onConflict: 'workspace_id,lead_id' });
+
+            if (propErr) {
+              console.warn(`[Prepare:${id}] ⚠️  proposals DB write failed: ${propErr.message}`);
+            } else {
+              console.log(`[Prepare:${id}] ✅ proposals table saved to Supabase`);
+            }
+          } else {
+            const msg = 'Proposal generation returned null — Gemini call may have failed. Check [AI:Proposal] logs above.';
+            if (!lastError) lastError = msg;
+            console.error(`[Prepare:${id}] ❌ ${msg}`);
           }
         } catch (proposalErr) {
-          lastError = proposalErr instanceof Error ? proposalErr.message : 'Proposal generation failed';
-          console.error('[Prepare] Proposal generation error:', proposalErr);
+          const msg = proposalErr instanceof Error ? proposalErr.message : 'Proposal generation threw an exception';
+          if (!lastError) lastError = msg;
+          console.error(`[Prepare:${id}] ❌ Proposal exception:`, proposalErr);
         }
       }
+
+      console.log(`[Prepare:${id}] ── AI Generation complete. Final error state: ${lastError ?? 'none'} ──`);
+    } else {
+      console.log(`[Prepare:${id}] Skipping AI generation — content already exists. Pass force=true to regenerate.`);
     }
 
     if (lastError) updates.last_error = lastError;
 
-    // ── Step D: Persist updates ──────────────────────────────────────────
+    // ── Step C: Persist all updates ──────────────────────────────────────
+    console.log(`[Prepare:${id}] Persisting ${Object.keys(updates).length} field(s) to leads table...`);
+
     const { data: updatedLead, error: updateErr } = await supabaseAdmin
       .from('leads')
       .update({ ...updates, updated_at: now })
@@ -449,9 +481,14 @@ router.post('/:id/prepare', async (req, res) => {
       .select('*, lead_scores(*), outreach_messages(*)')
       .single();
 
-    if (updateErr) throw updateErr;
+    if (updateErr) {
+      console.error(`[Prepare:${id}] ❌ leads DB update failed: ${updateErr.message}`);
+      throw updateErr;
+    }
 
-    // Also fetch the latest proposal
+    console.log(`[Prepare:${id}] ✅ leads table updated. Sending response.`);
+
+    // Fetch the latest proposal record for the response
     const { data: latestProposal } = await supabaseAdmin
       .from('proposals')
       .select('*')
@@ -589,4 +626,3 @@ router.post('/:id/save-draft', async (req, res) => {
 });
 
 export default router;
-

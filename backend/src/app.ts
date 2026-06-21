@@ -6,6 +6,7 @@ import leadsRouter from './routes/leads';
 import analyticsRouter from './routes/analytics';
 import adminRouter from './routes/admin';
 import proposalsRouter from './routes/proposals';
+import aiRouter from './routes/ai';
 import { authMiddleware, adminMiddleware } from './middleware/auth';
 import { supabaseAdmin } from './lib/supabase';
 
@@ -61,6 +62,9 @@ app.use('/api/', apiLimiter);
 app.get('/health', (_req, res) => {
   res.status(200).json({ status: 'ok' });
 });
+
+// Public AI diagnostics (no auth — test Gemini independently)
+app.use('/api/ai', aiRouter);
 
 // Protected API Routes
 app.use('/api/leads', authMiddleware, leadsRouter);
