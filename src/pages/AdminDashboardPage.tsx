@@ -351,7 +351,7 @@ export function AdminDashboardPage() {
                     >
                       <td className="px-5 py-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#52B788] to-[#2D6A4F] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
+                          <div className="h-10 w-10 rounded-xl bg-linear-to-br from-[#52B788] to-[#2D6A4F] text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-md">
                             {user.fullName.split(' ').map((n) => n[0]).join('').substring(0, 2).toUpperCase()}
                           </div>
                           <div className="min-w-0">
@@ -453,7 +453,7 @@ export function AdminDashboardPage() {
             {/* Slide Header */}
             <div className="sticky top-0 z-10 bg-[#0d2b1f] border-b border-[#2D6A4F]/40 px-5 py-4 flex items-center justify-between">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[#52B788] to-[#2D6A4F] text-white flex items-center justify-center font-bold text-sm shrink-0">
+                <div className="h-10 w-10 rounded-xl bg-linear-to-br from-[#52B788] to-[#2D6A4F] text-white flex items-center justify-center font-bold text-sm shrink-0">
                   <User className="h-5 w-5" />
                 </div>
                 <div className="min-w-0">
