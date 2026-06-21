@@ -11,6 +11,7 @@ import { AdminDashboardPage } from '@/pages/AdminDashboardPage'
 import { LandingPage } from '@/pages/LandingPage'
 import { AboutPage } from '@/pages/AboutPage'
 import { LoginPage } from '@/pages/LoginPage'
+import { ProfilePage } from '@/pages/ProfilePage'
 import { useAppStore } from '@/store/useAppStore'
 
 // Role Guard for Admin Panel
@@ -42,6 +43,7 @@ function App() {
             <Route path="/app/pipeline" element={<PipelinePage />} />
             <Route path="/app/leads" element={<LeadsPage />} />
             <Route path="/app/proposals" element={<ProposalsPage />} />
+            <Route path="/app/profile" element={<ProfilePage />} />
             <Route
               path="/app/admin"
               element={

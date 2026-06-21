@@ -61,7 +61,11 @@ export function TopBar() {
         </button>
 
         {/* Avatar */}
-        <div className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity ml-2">
+        <div 
+          className="flex items-center gap-3 cursor-pointer hover:opacity-90 transition-opacity ml-2"
+          onClick={() => navigate('/app/profile')}
+          title="User Profile"
+        >
           <div className="h-11 w-11 rounded-full clay-raised flex items-center justify-center text-(--primary) font-bold text-sm shrink-0">
             {userRole === 'admin' ? 'AD' : 'US'}
           </div>
