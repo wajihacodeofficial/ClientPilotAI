@@ -22,15 +22,19 @@ const apiKey = process.env.GEMINI_API_KEY;
 if (!apiKey) {
   console.error('[AI] ❌ CRITICAL: GEMINI_API_KEY is not set. All AI operations will fail.');
 } else if (!apiKey.startsWith('AIza')) {
-  console.warn(
-    `[AI] ⚠️  WARNING: GEMINI_API_KEY does not match expected format (AIzaSy...). ` +
-    `Current value starts with "${apiKey.slice(0, 6)}...". Requests may fail with 401.`
+  // Keys that don't start with "AIza" are invalid (e.g. the legacy "AQ." format).
+  // Log at ERROR level — this is a misconfiguration, not a warning.
+  console.error(
+    `[AI] ❌ CRITICAL: GEMINI_API_KEY has an invalid format (starts with "${apiKey.slice(0, 6)}..."). ` +
+    `Valid Gemini keys start with "AIza". ` +
+    `Generate a new key at https://aistudio.google.com/app/apikey — all AI calls will fail until fixed.`
   );
 } else {
   console.log(`[AI] ✅ GEMINI_API_KEY loaded (starts with ${apiKey.slice(0, 8)}...). Model: ${GEMINI_MODEL}`);
 }
 
 const genAI = new GoogleGenerativeAI(apiKey ?? '');
+
 
 // ─── Result type ──────────────────────────────────────────────────────────────
 

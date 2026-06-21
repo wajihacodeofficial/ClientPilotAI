@@ -235,32 +235,131 @@ router.post('/:id/score', async (req, res) => {
 
 // POST /api/leads/:id/outreach
 router.post('/:id/outreach', async (req, res) => {
-  try {
-    const { id } = req.params;
-    
-    const { data: lead } = await supabaseAdmin.from('leads').select('*, lead_scores(*)').eq('id', id).single();
-    if (!lead) return res.status(404).json({ error: 'Lead not found' });
+  const { id } = req.params;
+  const user = req.user!;
 
-    const reasoning = lead.lead_scores?.[0]?.ai_reasoning || 'They lack a digital presence.';
+  console.log(`[Outreach:${id}] ── Request received (user=${user.sub}) ──`);
+
+  try {
+    // ── Step 1: Resolve workspace ──────────────────────────────────────
+    const { data: profile } = await supabaseAdmin
+      .from('profiles')
+      .select('workspace_id')
+      .eq('id', user.sub)
+      .single();
+
+    if (!profile?.workspace_id) {
+      console.warn(`[Outreach:${id}] No workspace found for user ${user.sub}`);
+      return res.status(403).json({ success: false, error: 'No workspace found' });
+    }
+
+    // ── Step 2: Fetch lead (scoped to workspace) ───────────────────────
+    const { data: lead, error: leadErr } = await supabaseAdmin
+      .from('leads')
+      .select('*, lead_scores(*)')
+      .eq('id', id)
+      .eq('workspace_id', profile.workspace_id)
+      .single();
+
+    if (leadErr || !lead) {
+      console.warn(`[Outreach:${id}] Lead not found. DB error: ${leadErr?.message ?? 'not in workspace'}`);
+      return res.status(404).json({ success: false, error: 'Lead not found in your workspace' });
+    }
+
+    console.log(`[Outreach:${id}] Lead loaded: "${lead.business_name}" | Category: ${lead.category}`);
+
+    // ── Step 3: Build AI reasoning context ────────────────────────────
+    const reasoning =
+      (lead.lead_scores as { ai_reasoning?: string }[])?.[0]?.ai_reasoning ||
+      'This business lacks a modern digital presence and would benefit from our services.';
+
+    console.log(`[Outreach:${id}] AI reasoning snippet: "${reasoning.slice(0, 100)}"`);
+    console.log(`[Outreach:${id}] → Sending outreach prompt to Gemini...`);
+
+    // ── Step 4: Call Gemini ────────────────────────────────────────────
     const outreach = await generateOutreach(lead.business_name, lead.category, reasoning);
-    
+
     if (!outreach) {
+      console.error(
+        `[Outreach:${id}] ❌ generateOutreach returned null. ` +
+        `Check [AI:Outreach] logs above for the specific Gemini error.`
+      );
       return res.status(500).json({
-        error: 'Outreach generation failed — check server logs for [AI:Outreach] errors. Common causes: invalid GEMINI_API_KEY, quota exceeded, or network issue.',
+        success: false,
+        error:
+          'Outreach generation returned null — common causes: ' +
+          'invalid GEMINI_API_KEY (must start with "AIza"), quota exceeded, or network error. ' +
+          'Check server logs for [AI:Outreach] details.',
       });
     }
 
-    const { data: saved } = await supabaseAdmin.from('outreach_messages').insert({
-      lead_id: id,
-      subject: outreach.subject,
-      content: outreach.body,
-      status: 'draft',
-      generated_by_ai: true
-    }).select().single();
+    console.log(`[Outreach:${id}] ✅ Gemini returned outreach. Subject: "${outreach.subject}"`);
 
-    res.json(saved);
+    const now = new Date().toISOString();
+
+    // ── Step 5: Persist to outreach_messages (delete + insert) ────────
+    // Note: outreach_messages has no UNIQUE(lead_id) constraint in the initial
+    // schema (migration 00007 adds it). Use delete+insert to avoid duplicates
+    // regardless of whether the migration has been applied yet.
+    await supabaseAdmin.from('outreach_messages').delete().eq('lead_id', id);
+
+    const { data: savedMsg, error: msgErr } = await supabaseAdmin
+      .from('outreach_messages')
+      .insert({
+        lead_id: id,
+        subject: outreach.subject,
+        content: outreach.body,
+        status: 'draft',
+        generated_by_ai: true,
+        updated_at: now,
+      })
+      .select()
+      .single();
+
+    if (msgErr) {
+      console.warn(`[Outreach:${id}] ⚠️  outreach_messages insert failed: ${msgErr.message}`);
+    } else {
+      console.log(`[Outreach:${id}] ✅ outreach_messages saved to Supabase (id=${savedMsg?.id})`);
+    }
+
+    // ── Step 6: Mirror subject/body into leads table ───────────────────
+    const { error: leadsUpdateErr } = await supabaseAdmin
+      .from('leads')
+      .update({
+        outreach_subject: outreach.subject,
+        outreach_body: outreach.body,
+        outreach_status: 'draft',
+        outreach_generated_at: now,
+        last_ai_model: 'gemini-2.5-flash',
+        updated_at: now,
+      })
+      .eq('id', id)
+      .eq('workspace_id', profile.workspace_id);
+
+    if (leadsUpdateErr) {
+      console.warn(`[Outreach:${id}] ⚠️  leads table update failed: ${leadsUpdateErr.message}`);
+    } else {
+      console.log(`[Outreach:${id}] ✅ leads table updated with outreach fields`);
+    }
+
+    // ── Step 7: Return structured response ────────────────────────────
+    console.log(`[Outreach:${id}] ── Complete. Sending success response. ──`);
+
+    return res.json({
+      success: true,
+      leadId: id,
+      outreachSubject: outreach.subject,
+      outreachBody: outreach.body,
+      followUp: outreach.follow_up,
+      whatsappBody: outreach.whatsapp_body,
+      model: 'gemini-2.5-flash',
+      // Also return the raw DB row if the frontend needs it
+      message: savedMsg ?? null,
+    });
   } catch (err: unknown) {
-    res.status(500).json({ error: err instanceof Error ? err.message : 'Internal Server Error' });
+    const message = err instanceof Error ? err.message : 'Internal Server Error';
+    console.error(`[Outreach:${id}] ❌ Unhandled exception:`, err);
+    return res.status(500).json({ success: false, error: message });
   }
 });
 

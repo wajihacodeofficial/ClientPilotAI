@@ -430,31 +430,41 @@ export async function generateOutreach(leadId: string): Promise<OutreachMessage>
     } as OutreachMessage;
   }
 
-  try {
-    const result = await fetchWithAuth(`/leads/${leadId}/outreach`, {
-      method: 'POST',
-    });
-    
-    return {
-      id: result.id,
-      subject: result.subject,
-      body: result.content,
-      status: result.status,
-      createdAt: result.created_at,
-    } as OutreachMessage;
-  } catch (err) {
-    console.warn('generateOutreach API failed:', err);
-    if (isProd && !forceDemo) throw err;
-    await delay(jitter(1000, 200));
-    const lead = mockLeads.find((l) => l.id === leadId);
-    return {
-      id: `msg-${Math.random().toString(36).substring(2, 9)}`,
-      subject: `AI Outreach for ${lead?.name || 'Business'}`,
-      body: `Hi,\n\nWe noticed you don't have a website yet and would love to help.\n\nRegards,\nAcme Software Agency`,
-      status: 'draft',
-      createdAt: new Date().toISOString(),
-    } as OutreachMessage;
+  // Real API call — always throw on failure so the UI surfaces the error.
+  const result = await fetchWithAuth(`/leads/${leadId}/outreach`, {
+    method: 'POST',
+  }) as {
+    success: boolean;
+    error?: string;
+    outreachSubject?: string;
+    outreachBody?: string;
+    followUp?: string;
+    whatsappBody?: string;
+    model?: string;
+    message?: { id?: string; created_at?: string } | null;
+  };
+
+  // Backend returns { success: false, error: '...' } for structured failures.
+  // fetchWithAuth already throws on non-2xx HTTP status, but this guards the case
+  // where the backend returns 200 with success:false (defensive check).
+  if (!result.success) {
+    throw new Error(result.error || 'Outreach generation failed — check server logs');
   }
+
+  const subject = result.outreachSubject ?? '';
+  const body = result.outreachBody ?? '';
+
+  if (!subject && !body) {
+    throw new Error('Outreach generation returned empty subject and body from server');
+  }
+
+  return {
+    id: result.message?.id ?? `ai-${Date.now()}`,
+    subject,
+    body,
+    status: 'draft',
+    createdAt: result.message?.created_at ?? new Date().toISOString(),
+  } as OutreachMessage;
 }
 
 // ============================================================
