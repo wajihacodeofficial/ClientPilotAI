@@ -29,12 +29,19 @@ export function Sidebar() {
 
   return (
     <motion.aside
-      animate={{ width: collapsed ? 64 : 232 }}
-      transition={{ duration: 0.22, ease: [0.4, 0, 0.2, 1] }}
-      className="relative shrink-0 h-screen bg-white dark:bg-zinc-900 border-r border-zinc-200 dark:border-zinc-800 flex flex-col overflow-hidden z-20"
+      animate={{ width: collapsed ? 64 : 270 }}
+      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+      style={{
+        background: 'var(--surface-glass)',
+        backdropFilter: 'blur(30px)',
+        border: '1px solid var(--surface-glass-border)',
+        borderRadius: '0 32px 32px 0',
+        boxShadow: 'var(--sidebar-shadow)'
+      }}
+      className="relative shrink-0 h-screen flex flex-col overflow-hidden z-20"
     >
       {/* Logo / Brand */}
-      <div className="h-14 flex items-center px-3.5 shrink-0 border-b border-zinc-100 dark:border-zinc-800">
+      <div className="h-16 flex items-center px-4 shrink-0 border-b border-white/10">
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Logo image */}
           <img
@@ -51,10 +58,10 @@ export function Sidebar() {
                 transition={{ duration: 0.15 }}
                 className="min-w-0"
               >
-                <p className="text-[13px] font-bold text-zinc-900 dark:text-zinc-100 leading-none whitespace-nowrap">
-                  ClientPilot<span className="text-teal-600"> AI</span>
+                <p className="text-[14px] font-extrabold text-white leading-none whitespace-nowrap">
+                  ClientPilot<span className="text-[var(--mint)] drop-shadow-[0_0_8px_rgba(99,217,160,0.5)]"> AI</span>
                 </p>
-                <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-none mt-0.5 whitespace-nowrap font-mono">
+                <p className="text-[10px] text-[var(--text-secondary)] leading-none mt-1 whitespace-nowrap font-mono tracking-widest uppercase">
                   Lead Acquisition
                 </p>
               </motion.div>
@@ -101,22 +108,22 @@ export function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mx-2 mb-3 px-3 py-2.5 rounded-lg bg-teal-50 dark:bg-teal-950 border border-teal-100 dark:border-teal-900"
+            className="mx-3 mb-4 px-4 py-3 rounded-2xl bg-white/5 border border-white/10 shadow-[inset_0_0_10px_rgba(255,255,255,0.02)] backdrop-blur-md"
           >
-            <p className="text-[10px] font-semibold text-teal-700 dark:text-teal-400 uppercase tracking-wider">Workspace</p>
-            <p className="text-xs font-medium text-teal-900 dark:text-teal-200 mt-0.5 truncate">Acme Software Agency</p>
+            <p className="text-[10px] font-bold text-[var(--mint)] uppercase tracking-widest drop-shadow-[0_0_4px_rgba(99,217,160,0.3)]">Workspace</p>
+            <p className="text-sm font-semibold text-white mt-1 truncate">Acme Software Agency</p>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Collapse toggle */}
-      <div className="p-2.5 border-t border-zinc-100 dark:border-zinc-800">
+      <div className="p-3 border-t border-white/10">
         <button
           onClick={toggle}
-          className="w-full flex items-center justify-center h-8 rounded-md hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 transition-colors"
+          className="w-full flex items-center justify-center h-10 rounded-xl bg-white/5 hover:bg-white/10 text-[var(--text-secondary)] hover:text-white transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
-          {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </button>
       </div>
     </motion.aside>

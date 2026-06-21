@@ -53,15 +53,14 @@ function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: S
     <motion.div
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, scale: 1.02 }}
       transition={{ delay, type: 'spring', stiffness: 300, damping: 20 }}
-      className="clay-card-dark p-6"
+      className="clay-card p-6"
     >
       <div className="flex items-start justify-between mb-4">
-        <div className={cn('h-10 w-10 rounded-xl flex items-center justify-center border-2 border-white/10 shadow-inner', accent)}>
+        <div className={cn('h-12 w-12 rounded-[18px] flex items-center justify-center shadow-inner border border-white/10', accent)}>
           {icon}
         </div>
-        <div className="bg-black/10 px-2 py-1.5 rounded-xl border border-white/5">
+        <div className="bg-black/20 px-2 py-1.5 rounded-xl border border-white/5 shadow-inner">
           <Sparkline data={sparkline} color={trend >= 0 ? '#52B788' : '#FFB347'} />
         </div>
       </div>
@@ -74,7 +73,7 @@ function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: S
           ) : (
             <TrendingDown className="h-3.5 w-3.5 text-[#FFB347]" />
           )}
-          <span className={cn('text-xs font-extrabold', trend >= 0 ? 'text-[#74C69D]' : 'text-[#FFB347]')}>
+          <span className={cn('text-xs font-extrabold', trend >= 0 ? 'text-[var(--mint)]' : 'text-[var(--gold)]')}>
             {trend >= 0 ? '+' : ''}{trend}% vs last week
           </span>
         </div>
@@ -88,20 +87,20 @@ function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: S
 // ============================================================
 function ActivityIcon({ type }: { type: ActivityEvent['type'] }) {
   const map = {
-    scored: { icon: <Star className="h-3.5 w-3.5" />, bg: 'bg-[#8b5cf6]/20 text-[#c084fc] border-[#8b5cf6]/30' },
-    outreach_sent: { icon: <Send className="h-3.5 w-3.5" />, bg: 'bg-[#52B788]/20 text-[#74C69D] border-[#52B788]/30' },
-    stage_changed: { icon: <CheckCircle2 className="h-3.5 w-3.5" />, bg: 'bg-[#FFB347]/20 text-[#FFD166] border-[#FFB347]/30' },
-    discovered: { icon: <Zap className="h-3.5 w-3.5" />, bg: 'bg-[#2EC4B6]/20 text-[#4EECD6] border-[#2EC4B6]/30' },
+    scored: { icon: <Star className="h-4 w-4" />, bg: 'bg-[var(--purple)]/20 text-[var(--purple)] border-[var(--purple)]/30 drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]' },
+    outreach_sent: { icon: <Send className="h-4 w-4" />, bg: 'bg-[var(--emerald)]/20 text-[var(--emerald)] border-[var(--emerald)]/30 drop-shadow-[0_0_8px_rgba(80,227,164,0.3)]' },
+    stage_changed: { icon: <CheckCircle2 className="h-4 w-4" />, bg: 'bg-[var(--gold)]/20 text-[var(--gold)] border-[var(--gold)]/30 drop-shadow-[0_0_8px_rgba(255,190,85,0.3)]' },
+    discovered: { icon: <Zap className="h-4 w-4" />, bg: 'bg-[var(--mint)]/20 text-[var(--mint)] border-[var(--mint)]/30 drop-shadow-[0_0_8px_rgba(99,217,160,0.3)]' },
   }
   const { icon, bg } = map[type]
-  return <div className={cn('h-7 w-7 rounded-full flex items-center justify-center shrink-0 border', bg)}>{icon}</div>
+  return <div className={cn('h-8 w-8 rounded-full flex items-center justify-center shrink-0 border', bg)}>{icon}</div>
 }
 
 // ============================================================
 // Custom chart colors
 // ============================================================
-const SCORE_COLORS = ['#52B788', '#FFB347', '#40916C']
-const FOREST_ACCENT = '#52B788'
+const SCORE_COLORS = ['var(--emerald)', 'var(--gold)', 'var(--forest-500)']
+const FOREST_ACCENT = 'var(--mint)'
 
 // ============================================================
 // Dashboard Page
@@ -171,10 +170,7 @@ export function DashboardPage() {
   ]
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl relative overflow-hidden min-h-screen text-[#e2f0e2]" style={{
-      background: 'linear-gradient(135deg, #0D2B1F 0%, #1A4A32 50%, #2D6A4F 100%)',
-      fontFamily: "'Nunito', sans-serif"
-    }}>
+    <div className="p-6 space-y-6 w-full relative overflow-hidden min-h-screen text-white">
       
       {/* BACKGROUND DECORATIONS */}
       <div className="absolute top-[10%] right-[10%] w-24 h-24 opacity-5 pointer-events-none animate-[spin_10s_linear_infinite]">
@@ -189,28 +185,19 @@ export function DashboardPage() {
       </div>
 
       <style>{`
-        .clay-card-dark {
-          background: rgba(240, 255, 244, 0.06);
-          border: 3px solid #2D6A4F;
-          border-radius: 28px;
-          box-shadow: inset 4px 4px 10px rgba(255, 255, 255, 0.05),
-                      inset -4px -4px 10px rgba(0, 0, 0, 0.4),
-                      0 15px 30px rgba(13, 43, 31, 0.45);
-          backdrop-filter: blur(12px);
-        }
         .clay-card-title {
-          font-family: 'Nunito', sans-serif;
-          font-weight: 800;
+          font-weight: 700;
           font-size: 1.1rem;
-          color: #ffffff;
+          color: var(--white);
+          letter-spacing: 0.3px;
         }
       `}</style>
 
       {/* Page header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-black text-white tracking-tight uppercase">Overview</h1>
-          <p className="text-sm text-[#74C69D] mt-0.5 font-bold">
+          <h1 className="text-[28px] font-black text-white tracking-tight">Overview</h1>
+          <p className="text-[14px] text-[var(--text-secondary)] mt-0.5 font-medium">
             Real-time pipeline intelligence for your agency
           </p>
         </div>
@@ -234,10 +221,12 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.3 }}
-          className="lg:col-span-2 clay-card-dark p-6"
+          className="lg:col-span-2 clay-card p-6"
         >
-          <div className="flex items-center gap-2 mb-6">
-            <Activity className="h-5 w-5 text-[#52B788]" />
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-8 w-8 rounded-full bg-[var(--forest-800)] border border-[var(--forest-600)] flex items-center justify-center">
+              <Activity className="h-4 w-4 text-[var(--mint)]" />
+            </div>
             <h2 className="clay-card-title">Lead Discovery — Last 14 Days</h2>
           </div>
           <div className="w-full">
@@ -264,10 +253,12 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.42, duration: 0.3 }}
-          className="clay-card-dark p-6 flex flex-col justify-between"
+          className="clay-card p-6 flex flex-col justify-between"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Sparkles className="h-5 w-5 text-[#FFB347]" />
+          <div className="flex items-center gap-3 mb-4">
+            <div className="h-8 w-8 rounded-full bg-[var(--forest-800)] border border-[var(--forest-600)] flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-[var(--gold)]" />
+            </div>
             <h2 className="clay-card-title">Score Distribution</h2>
           </div>
           <div className="w-full flex-1 flex items-center justify-center">
@@ -303,10 +294,12 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.3 }}
-          className="lg:col-span-2 clay-card-dark p-6"
+          className="lg:col-span-2 clay-card p-6"
         >
-          <div className="flex items-center gap-2 mb-6">
-            <ArrowUpRight className="h-5 w-5 text-[#52B788]" />
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-8 w-8 rounded-full bg-[var(--forest-800)] border border-[var(--forest-600)] flex items-center justify-center">
+              <ArrowUpRight className="h-4 w-4 text-[var(--emerald)]" />
+            </div>
             <h2 className="clay-card-title">Conversion Funnel</h2>
           </div>
           <div className="w-full">
@@ -318,7 +311,7 @@ export function DashboardPage() {
                 <Tooltip contentStyle={{ background: '#0D2B1F', border: '2px solid #2D6A4F', borderRadius: 16, fontSize: 12, color: '#e2f0e2' }} />
                 <Bar dataKey="count" radius={[0, 8, 8, 0]} maxBarSize={28}>
                   {s.funnelData.map((_, i) => (
-                    <Cell key={i} fill={['#8b5cf6', '#52B788', '#FFB347', '#2EC4B6'][i]} />
+                    <Cell key={i} fill={['var(--purple)', 'var(--emerald)', 'var(--gold)', 'var(--mint)'][i]} />
                   ))}
                 </Bar>
               </BarChart>
@@ -331,13 +324,15 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.56, duration: 0.3 }}
-          className="clay-card-dark p-6 flex flex-col"
+          className="clay-card p-6 flex flex-col"
         >
-          <div className="flex items-center gap-2 mb-4">
-            <Activity className="h-5 w-5 text-[#52B788]" />
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-8 w-8 rounded-full bg-[var(--forest-800)] border border-[var(--forest-600)] flex items-center justify-center">
+              <Activity className="h-4 w-4 text-[var(--mint)]" />
+            </div>
             <h2 className="clay-card-title">Recent Activity</h2>
           </div>
-          <div className="flex-1 max-h-[250px] overflow-y-auto space-y-0 pr-1">
+          <div className="flex-1 max-h-[250px] overflow-y-auto space-y-3 pr-1">
             <AnimatePresence initial={false}>
               {activity.map((event) => (
                 <motion.div
@@ -346,13 +341,13 @@ export function DashboardPage() {
                   animate={{ opacity: 1, y: 0, height: 'auto' }}
                   exit={{ opacity: 0 }}
                   transition={{ duration: 0.25 }}
-                  className="flex gap-3 py-3 border-b border-[#2D6A4F]/30 last:border-0"
+                  className="activity-card flex items-center gap-4 px-4 py-3"
                 >
                   <ActivityIcon type={event.type} />
                   <div className="min-w-0">
-                    <p className="text-xs font-bold text-white truncate">{event.leadName}</p>
-                    <p className="text-xs text-[#74C69D] leading-tight mt-0.5">{event.detail}</p>
-                    <p className="text-[10px] text-emerald-300/60 mt-1 font-semibold">{formatRelativeTime(event.timestamp)}</p>
+                    <p className="text-[13px] font-bold text-white truncate">{event.leadName}</p>
+                    <p className="text-[12px] text-[var(--text-secondary)] leading-tight mt-0.5">{event.detail}</p>
+                    <p className="text-[10px] text-[var(--mint)]/70 mt-1.5 font-medium tracking-wide uppercase">{formatRelativeTime(event.timestamp)}</p>
                   </div>
                 </motion.div>
               ))}
@@ -369,7 +364,7 @@ export function DashboardPage() {
 // ============================================================
 function DashboardSkeleton() {
   return (
-    <div className="p-6 space-y-6 max-w-7xl min-h-screen text-[#e2f0e2]" style={{
+    <div className="p-6 space-y-6 w-full min-h-screen text-[#e2f0e2]" style={{
       background: 'linear-gradient(135deg, #0D2B1F 0%, #1A4A32 50%, #2D6A4F 100%)',
     }}>
       <div className="space-y-1">

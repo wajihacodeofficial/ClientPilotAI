@@ -94,7 +94,7 @@ export function LeadsPage() {
   )
 
   return (
-    <div className="p-6 space-y-5 max-w-7xl">
+    <div className="p-6 space-y-5 w-full">
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>

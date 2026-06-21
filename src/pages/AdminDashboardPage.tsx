@@ -155,7 +155,7 @@ export function AdminDashboardPage() {
   }
 
   return (
-    <div className="p-6 space-y-6 max-w-7xl relative overflow-hidden min-h-screen text-[#e2f0e2]" style={{
+    <div className="p-6 space-y-6 w-full relative overflow-hidden min-h-screen text-[#e2f0e2]" style={{
       background: 'linear-gradient(135deg, #0D2B1F 0%, #1A4A32 50%, #2D6A4F 100%)',
       fontFamily: "'Nunito', sans-serif"
     }}>
