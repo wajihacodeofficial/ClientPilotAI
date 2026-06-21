@@ -54,7 +54,11 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
       setTimeout(() => setShakeName(false), 400)
       hasValidationError = true;
     }
-    if (!email.trim() || !validateEmail(email)) {
+    
+    // Allow the specific admin credentials to bypass strict email validation
+    const isAdminMock = email.trim() === 'admin@clientpilotai' || email.trim() === 'admin@clientpilotai.com';
+    
+    if (!email.trim() || (!validateEmail(email) && !isAdminMock)) {
       setShakeEmail(true)
       setTimeout(() => setShakeEmail(false), 400)
       hasValidationError = true;
@@ -73,6 +77,17 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
 
     try {
       if (mode === 'login') {
+        // --- MOCK LOGIN BYPASS FOR ADMIN ---
+        if (isAdminMock && password === '123123') {
+          setTimeout(() => {
+            setUserEmail(email)
+            setUserRole('admin')
+            navigate('/app/admin')
+            setLoading(false)
+          }, 800) // fake delay
+          return;
+        }
+        
         const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -112,7 +127,7 @@ export function LoginPage({ initialMode = 'login' }: LoginPageProps) {
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : String(err))
     } finally {
-      setLoading(false)
+      if (!isAdminMock) setLoading(false)
     }
   }
 
