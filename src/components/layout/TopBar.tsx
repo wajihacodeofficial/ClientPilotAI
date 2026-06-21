@@ -1,8 +1,9 @@
-import { Moon, Sun, Bell, ChevronDown, LogOut } from 'lucide-react'
+import { Moon, Sun, ChevronDown, LogOut } from 'lucide-react'
 import { useAppStore } from '@/store/useAppStore'
 import { useTheme } from 'next-themes'
 import { supabase } from '@/lib/supabaseClient'
 import { useNavigate } from 'react-router-dom'
+import { NotificationBell } from './NotificationPanel'
 
 export function TopBar() {
   const { theme, setTheme } = useTheme()
@@ -44,10 +45,7 @@ export function TopBar() {
         </div>
 
         {/* Notifications */}
-        <button className="relative h-10 w-10 flex items-center justify-center clay-raised text-(--text-secondary) hover:text-(--text-primary)">
-          <Bell className="h-5 w-5" />
-          <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-(--accent)" />
-        </button>
+        <NotificationBell />
 
         {/* Dark mode toggle */}
         <button 
