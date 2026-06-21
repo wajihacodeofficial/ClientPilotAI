@@ -64,12 +64,8 @@ interface AdminUser {
   workspace: AdminUserWorkspace | null;
 }
 
-const CAT_EMOJI: Record<string, string> = {
-  restaurant: '🍽️', retail: '🛍️', salon: '💇', clinic: '🏥',
-  auto_service: '🔧', bakery: '🥐', pharmacy: '💊', tailor: '🧵',
-  cafe: '☕', gym: '💪', electronics: '🔌', jewellery: '💍',
-  real_estate: '🏠', catering: '🍱',
-}
+import { CAT_ICON } from '@/lib/icons';
+import { Store } from 'lucide-react';
 
 const STAGE_COLORS: Record<string, string> = {
   discovery: 'text-[#8b5cf6] bg-[#8b5cf6]/10 border-[#8b5cf6]/20',
@@ -564,7 +560,7 @@ export function AdminDashboardPage() {
                               <tr key={lead.id} className="hover:bg-white/5">
                                 <td className="px-3 py-2.5">
                                   <div className="flex items-center gap-1.5">
-                                    <span className="text-base shrink-0">{CAT_EMOJI[lead.category] ?? '🏪'}</span>
+                                    <span className="text-base shrink-0">{(() => { const Icon = CAT_ICON[lead.category] || Store; return <Icon className="h-5 w-5" />; })()}</span>
                                     <div className="min-w-0">
                                       <p className="font-bold text-white truncate max-w-[160px]">{lead.name}</p>
                                       <p className="text-[9px] text-[#74C69D] leading-none truncate max-w-[160px] font-semibold">{lead.city}</p>

@@ -16,12 +16,8 @@ const STAGE_COLORS: Record<PipelineStage, string> = {
   client: 'text-emerald-600 bg-emerald-50 border-emerald-200 dark:text-emerald-400 dark:bg-emerald-950 dark:border-emerald-800',
 }
 
-const CAT_EMOJI: Record<string, string> = {
-  restaurant: '🍽️', retail: '🛍️', salon: '💇', clinic: '🏥',
-  auto_service: '🔧', bakery: '🥐', pharmacy: '💊', tailor: '🧵',
-  cafe: '☕', gym: '💪', electronics: '🔌', jewellery: '💍',
-  real_estate: '🏠', catering: '🍱',
-}
+import { CAT_ICON } from '@/lib/icons';
+import { Store } from 'lucide-react';
 
 type SortKey = 'name' | 'score' | 'city' | 'pipelineStage' | 'discoveredAt'
 
@@ -187,7 +183,7 @@ export function LeadsPage() {
                     {/* Name */}
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2.5">
-                        <span className="text-base">{CAT_EMOJI[lead.category] ?? '🏪'}</span>
+                        <span className="text-base">{(() => { const Icon = CAT_ICON[lead.category] || Store; return <Icon className="h-5 w-5" />; })()}</span>
                         <div>
                           <p className="font-medium text-zinc-900 dark:text-zinc-100 text-sm leading-none">
                             {lead.name}

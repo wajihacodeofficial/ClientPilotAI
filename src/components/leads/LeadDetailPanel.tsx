@@ -442,12 +442,8 @@ export function LeadDetailPanel() {
     updateLeadStageStore(lead.id, stage)
   }
 
-  const CAT_EMOJI: Record<string, string> = {
-    restaurant: '🍽️', retail: '🛍️', salon: '💇', clinic: '🏥',
-    auto_service: '🔧', bakery: '🥐', pharmacy: '💊', tailor: '🧵',
-    cafe: '☕', gym: '💪', electronics: '🔌', jewellery: '💍',
-    real_estate: '🏠', catering: '🍱',
-  }
+  import { CAT_ICON } from '@/lib/icons';
+  import { Store } from 'lucide-react';
 
   return (
     <Sheet open={!!selectedLeadId} onClose={() => setSelectedLeadId(null)} width="w-[540px]">
@@ -461,7 +457,7 @@ export function LeadDetailPanel() {
         ) : (
           <div className="flex items-center gap-3 min-w-0">
             <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xl shrink-0">
-              {CAT_EMOJI[lead.category] ?? '🏪'}
+              {(() => { const Icon = CAT_ICON[lead.category] || Store; return <Icon className="h-6 w-6" />; })()}
             </div>
             <div className="min-w-0">
               <h2 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 truncate">{lead.name}</h2>

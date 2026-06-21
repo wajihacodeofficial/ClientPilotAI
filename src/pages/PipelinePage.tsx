@@ -25,12 +25,8 @@ const STAGE_META: Record<PipelineStage, { color: string; dot: string; bg: string
   client: { color: 'text-(--text-primary)', dot: 'bg-(--text-primary)', bg: 'clay-inset' },
 }
 
-const CAT_EMOJI: Record<string, string> = {
-  restaurant: '🍽️', retail: '🛍️', salon: '💇', clinic: '🏥',
-  auto_service: '🔧', bakery: '🥐', pharmacy: '💊', tailor: '🧵',
-  cafe: '☕', gym: '💪', electronics: '🔌', jewellery: '💍',
-  real_estate: '🏠', catering: '🍱',
-}
+import { CAT_ICON } from '@/lib/icons';
+import { Store } from 'lucide-react';
 
 // ── Kanban Card ──────────────────────────────────────────────
 function KanbanCard({ lead, isDragging }: { lead: Lead; isDragging?: boolean }) {

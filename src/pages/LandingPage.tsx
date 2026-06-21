@@ -358,7 +358,7 @@ export function LandingPage() {
             <div className="flex flex-col items-center text-center z-10">
               <div className="w-[52px] h-[52px] rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">1</div>
               <div className="bg-white border-2 border-white rounded-[28px] p-8 clay-shadow-white w-full">
-                <h3 className="text-lg font-bold mb-2">🔍 Define Your Market</h3>
+                <h3 className="text-lg font-bold mb-2">Define Your Market</h3>
                 <p className="text-sm text-[#1e293b]">Tell us your niche and city. We handle the rest.</p>
               </div>
             </div>
@@ -366,7 +366,7 @@ export function LandingPage() {
             <div className="flex flex-col items-center text-center z-10">
               <div className="w-[52px] h-[52px] rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">2</div>
               <div className="bg-white border-2 border-white rounded-[28px] p-8 clay-shadow-white w-full">
-                <h3 className="text-lg font-bold mb-2">🤖 AI Does the Work</h3>
+                <h3 className="text-lg font-bold mb-2">AI Does the Work</h3>
                 <p className="text-sm text-[#1e293b]">We find, score, and write outreach for every lead.</p>
               </div>
             </div>
@@ -374,7 +374,7 @@ export function LandingPage() {
             <div className="flex flex-col items-center text-center z-10">
               <div className="w-[52px] h-[52px] rounded-full bg-linear-to-br from-[#10b981] to-[#059669] text-white font-extrabold text-xl flex items-center justify-center clay-shadow-teal mb-6">3</div>
               <div className="bg-white border-2 border-white rounded-[28px] p-8 clay-shadow-white w-full">
-                <h3 className="text-lg font-bold mb-2">📬 Watch Replies Roll In</h3>
+                <h3 className="text-lg font-bold mb-2">Watch Replies Roll In</h3>
                 <p className="text-sm text-[#1e293b]">Sit back while qualified prospects land in your inbox.</p>
               </div>
             </div>

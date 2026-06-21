@@ -489,7 +489,7 @@ export function ClayDashboardPage() {
                     {/* HERO WELCOME CARD */}
                     <div className="clay-card-light p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative overflow-hidden">
                       <div className="md:col-span-8 space-y-2">
-                        <h1 className="text-3xl font-black tracking-tight text-[#0D2B1F]">Welcome back Admin 👋</h1>
+                        <h1 className="text-3xl font-black tracking-tight text-[#0D2B1F]">Welcome back Admin</h1>
                         <p className="text-sm text-[#2D6A4F] font-bold max-w-[500px]">Monitor your business growth and performance. Access lead generation pipelines and scoring logs.</p>
                       </div>
                       
@@ -658,7 +658,7 @@ export function ClayDashboardPage() {
                     {/* HERO WELCOME */}
                     <div className="clay-card-light p-8 grid grid-cols-1 md:grid-cols-12 gap-6 items-center relative overflow-hidden">
                       <div className="md:col-span-8 space-y-2">
-                        <h1 className="text-3xl font-black tracking-tight text-[#0D2B1F]">Welcome back, Waji 👋</h1>
+                        <h1 className="text-3xl font-black tracking-tight text-[#0D2B1F]">Welcome back, Waji</h1>
                         <p className="text-sm text-[#2D6A4F] font-bold">Track your qualified clients and task checklists efficiently.</p>
                       </div>
                       
