@@ -54,26 +54,26 @@ function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: S
       initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay, type: 'spring', stiffness: 300, damping: 20 }}
-      className="clay-card p-6"
+      className="clay-raised p-6"
     >
       <div className="flex items-start justify-between mb-4">
-        <div className={cn('h-12 w-12 rounded-[18px] flex items-center justify-center shadow-inner border border-white/10', accent)}>
+        <div className={cn('h-12 w-12 rounded-[18px] clay-raised flex items-center justify-center text-white', accent)}>
           {icon}
         </div>
-        <div className="bg-black/20 px-2 py-1.5 rounded-xl border border-white/5 shadow-inner">
-          <Sparkline data={sparkline} color={trend >= 0 ? '#52B788' : '#FFB347'} />
+        <div className="clay-inset px-2 py-1.5 rounded-xl border border-transparent">
+          <Sparkline data={sparkline} color={trend >= 0 ? 'var(--success)' : 'var(--warning)'} />
         </div>
       </div>
       <div className="space-y-1">
-        <p className="text-xs text-emerald-300/80 font-bold uppercase tracking-wider">{label}</p>
-        <p className="text-3xl font-extrabold text-white font-mono tracking-tight">{value}</p>
+        <p className="text-xs text-(--text-secondary) font-bold uppercase tracking-wider">{label}</p>
+        <p className="text-3xl font-extrabold text-(--text-primary) font-mono tracking-tight">{value}</p>
         <div className="flex items-center gap-1">
           {trend >= 0 ? (
-            <TrendingUp className="h-3.5 w-3.5 text-[#52B788]" />
+            <TrendingUp className="h-3.5 w-3.5 text-(--success)" />
           ) : (
-            <TrendingDown className="h-3.5 w-3.5 text-[#FFB347]" />
+            <TrendingDown className="h-3.5 w-3.5 text-(--warning)" />
           )}
-          <span className={cn('text-xs font-extrabold', trend >= 0 ? 'text-(--mint)' : 'text-(--gold)')}>
+          <span className={cn('text-xs font-extrabold', trend >= 0 ? 'text-(--success)' : 'text-(--warning)')}>
             {trend >= 0 ? '+' : ''}{trend}% vs last week
           </span>
         </div>
@@ -87,20 +87,20 @@ function StatCard({ label, value, trend, sparkline, icon, accent, delay = 0 }: S
 // ============================================================
 function ActivityIcon({ type }: { type: ActivityEvent['type'] }) {
   const map = {
-    scored: { icon: <Star className="h-4 w-4" />, bg: 'bg-[var(--purple)]/20 text-[var(--purple)] border-[var(--purple)]/30 drop-shadow-[0_0_8px_rgba(139,92,246,0.3)]' },
-    outreach_sent: { icon: <Send className="h-4 w-4" />, bg: 'bg-[var(--emerald)]/20 text-[var(--emerald)] border-[var(--emerald)]/30 drop-shadow-[0_0_8px_rgba(80,227,164,0.3)]' },
-    stage_changed: { icon: <CheckCircle2 className="h-4 w-4" />, bg: 'bg-[var(--gold)]/20 text-[var(--gold)] border-[var(--gold)]/30 drop-shadow-[0_0_8px_rgba(255,190,85,0.3)]' },
-    discovered: { icon: <Zap className="h-4 w-4" />, bg: 'bg-[var(--mint)]/20 text-[var(--mint)] border-[var(--mint)]/30 drop-shadow-[0_0_8px_rgba(99,217,160,0.3)]' },
+    scored: { icon: <Star className="h-4 w-4" />, bg: 'bg-(--primary-soft) text-(--primary)' },
+    outreach_sent: { icon: <Send className="h-4 w-4" />, bg: 'bg-(--success) text-white' },
+    stage_changed: { icon: <CheckCircle2 className="h-4 w-4" />, bg: 'bg-(--warning) text-white' },
+    discovered: { icon: <Zap className="h-4 w-4" />, bg: 'bg-(--primary) text-white' },
   }
   const { icon, bg } = map[type]
-  return <div className={cn('h-8 w-8 rounded-full flex items-center justify-center shrink-0 border', bg)}>{icon}</div>
+  return <div className={cn('h-8 w-8 rounded-full flex items-center justify-center shrink-0 shadow-sm', bg)}>{icon}</div>
 }
 
 // ============================================================
 // Custom chart colors
 // ============================================================
-const SCORE_COLORS = ['var(--emerald)', 'var(--gold)', 'var(--forest-500)']
-const FOREST_ACCENT = 'var(--mint)'
+const SCORE_COLORS = ['var(--success)', 'var(--warning)', 'var(--primary)']
+const FOREST_ACCENT = 'var(--primary)'
 
 // ============================================================
 // Dashboard Page
@@ -170,25 +170,26 @@ export function DashboardPage() {
   ]
 
   return (
-    <div className="p-6 space-y-6 w-full relative overflow-hidden min-h-screen text-white">
+    <div className="p-6 space-y-6 w-full relative overflow-hidden min-h-screen text-(--text-primary)">
       
       {/* BACKGROUND DECORATIONS */}
-      <div className="absolute top-[10%] right-[10%] w-24 h-24 opacity-5 pointer-events-none animate-[spin_10s_linear_infinite]">
+      <div className="absolute top-[10%] right-[10%] w-24 h-24 opacity-20 pointer-events-none animate-[spin_10s_linear_infinite]">
         <svg viewBox="0 0 100 100" fill="none">
-          <circle cx="50" cy="50" r="40" stroke="#FFB347" strokeWidth="15" />
+          <circle cx="50" cy="50" r="40" stroke="var(--warning)" strokeWidth="15" />
         </svg>
       </div>
-      <div className="absolute bottom-[20%] left-[5%] w-28 h-28 opacity-5 pointer-events-none animate-[bounce_6s_ease-in-out_infinite]">
+      <div className="absolute bottom-[20%] left-[5%] w-28 h-28 opacity-10 pointer-events-none animate-[bounce_6s_ease-in-out_infinite]">
         <svg viewBox="0 0 100 100" fill="none">
-          <rect x="20" y="20" width="60" height="60" rx="20" fill="#2EC4B6" />
+          <rect x="20" y="20" width="60" height="60" rx="20" fill="var(--primary)" />
         </svg>
       </div>
 
       <style>{`
         .clay-card-title {
+          font-family: var(--font-heading);
           font-weight: 700;
           font-size: 1.1rem;
-          color: var(--white);
+          color: var(--text-primary);
           letter-spacing: 0.3px;
         }
       `}</style>
@@ -196,13 +197,13 @@ export function DashboardPage() {
       {/* Page header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-[28px] font-black text-white tracking-tight">Overview</h1>
+          <h1 className="text-[28px] font-heading font-black text-(--text-primary) tracking-tight">Overview</h1>
           <p className="text-[14px] text-(--text-secondary) mt-0.5 font-medium">
             Real-time pipeline intelligence for your agency
           </p>
         </div>
-        <div className="flex items-center gap-2 bg-emerald-950/40 px-4 py-2 border-2 border-[#2D6A4F] rounded-full text-xs font-bold shadow-md">
-          <span className="h-2.5 w-2.5 rounded-full bg-[#52B788] animate-pulse"></span>
+        <div className="flex items-center gap-2 clay-inset px-4 py-2 rounded-full text-xs font-bold text-(--primary) shadow-md">
+          <span className="h-2.5 w-2.5 rounded-full bg-(--success) animate-pulse"></span>
           Live Sync Active
         </div>
       </div>
@@ -221,11 +222,11 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.35, duration: 0.3 }}
-          className="lg:col-span-2 clay-card p-6"
+          className="lg:col-span-2 clay-raised p-6"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full bg-(--forest-800) border border-(--forest-600) flex items-center justify-center">
-              <Activity className="h-4 w-4 text-(--mint)" />
+            <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
+              <Activity className="h-4 w-4 text-(--primary)" />
             </div>
             <h2 className="clay-card-title">Lead Discovery — Last 14 Days</h2>
           </div>
@@ -253,11 +254,11 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.42, duration: 0.3 }}
-          className="clay-card p-6 flex flex-col justify-between"
+          className="clay-raised p-6 flex flex-col justify-between"
         >
           <div className="flex items-center gap-3 mb-4">
-            <div className="h-8 w-8 rounded-full bg-(--forest-800) border border-(--forest-600) flex items-center justify-center">
-              <Sparkles className="h-4 w-4 text-(--gold)" />
+            <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
+              <Sparkles className="h-4 w-4 text-(--warning)" />
             </div>
             <h2 className="clay-card-title">Score Distribution</h2>
           </div>
@@ -294,11 +295,11 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.3 }}
-          className="lg:col-span-2 clay-card p-6"
+          className="lg:col-span-2 clay-raised p-6"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full bg-(--forest-800) border border-(--forest-600) flex items-center justify-center">
-              <ArrowUpRight className="h-4 w-4 text-(--emerald)" />
+            <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
+              <ArrowUpRight className="h-4 w-4 text-(--success)" />
             </div>
             <h2 className="clay-card-title">Conversion Funnel</h2>
           </div>
@@ -324,11 +325,11 @@ export function DashboardPage() {
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.56, duration: 0.3 }}
-          className="clay-card p-6 flex flex-col"
+          className="clay-raised p-6 flex flex-col"
         >
           <div className="flex items-center gap-3 mb-6">
-            <div className="h-8 w-8 rounded-full bg-(--forest-800) border border-(--forest-600) flex items-center justify-center">
-              <Activity className="h-4 w-4 text-(--mint)" />
+            <div className="h-8 w-8 rounded-full clay-inset flex items-center justify-center">
+              <Activity className="h-4 w-4 text-(--primary)" />
             </div>
             <h2 className="clay-card-title">Recent Activity</h2>
           </div>
@@ -345,9 +346,9 @@ export function DashboardPage() {
                 >
                   <ActivityIcon type={event.type} />
                   <div className="min-w-0">
-                    <p className="text-[13px] font-bold text-white truncate">{event.leadName}</p>
+                    <p className="text-[13px] font-bold text-(--text-primary) truncate">{event.leadName}</p>
                     <p className="text-[12px] text-(--text-secondary) leading-tight mt-0.5">{event.detail}</p>
-                    <p className="text-[10px] text-(--mint)/70 mt-1.5 font-medium tracking-wide uppercase">{formatRelativeTime(event.timestamp)}</p>
+                    <p className="text-[10px] text-(--primary) mt-1.5 font-medium tracking-wide uppercase">{formatRelativeTime(event.timestamp)}</p>
                   </div>
                 </motion.div>
               ))}
@@ -364,25 +365,23 @@ export function DashboardPage() {
 // ============================================================
 function DashboardSkeleton() {
   return (
-    <div className="p-6 space-y-6 w-full min-h-screen text-[#e2f0e2]" style={{
-      background: 'linear-gradient(135deg, #0D2B1F 0%, #1A4A32 50%, #2D6A4F 100%)',
-    }}>
+    <div className="p-6 space-y-6 w-full min-h-screen text-(--text-primary)">
       <div className="space-y-1">
-        <Skeleton className="h-7 w-32 bg-emerald-950/40" />
-        <Skeleton className="h-4 w-64 bg-emerald-950/40" />
+        <Skeleton className="h-7 w-32" />
+        <Skeleton className="h-4 w-64" />
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-emerald-950/20 border-3 border-[#2D6A4F] rounded-[28px] p-6 h-40">
-            <Skeleton className="h-10 w-10 rounded-xl mb-3 bg-emerald-900/40" />
-            <Skeleton className="h-3.5 w-24 mb-2 bg-emerald-900/40" />
-            <Skeleton className="h-8 w-16 mb-2 bg-emerald-900/40" />
+          <div key={i} className="clay-raised p-6 h-40">
+            <Skeleton className="h-10 w-10 rounded-xl mb-3" />
+            <Skeleton className="h-3.5 w-24 mb-2" />
+            <Skeleton className="h-8 w-16 mb-2" />
           </div>
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 bg-emerald-950/20 border-3 border-[#2D6A4F] rounded-[28px] p-6 h-[260px]"><Skeleton className="h-full w-full bg-emerald-900/40" /></div>
-        <div className="bg-emerald-950/20 border-3 border-[#2D6A4F] rounded-[28px] p-6 h-[260px]"><Skeleton className="h-full w-full bg-emerald-900/40" /></div>
+        <div className="lg:col-span-2 clay-raised p-6 h-[260px]"><Skeleton className="h-full w-full" /></div>
+        <div className="clay-raised p-6 h-[260px]"><Skeleton className="h-full w-full" /></div>
       </div>
     </div>
   )

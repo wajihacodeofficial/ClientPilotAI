@@ -11,11 +11,11 @@ export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElemen
 }
 
 const buttonVariants = {
-  default: 'bg-indigo-600 text-white hover:bg-indigo-700 active:bg-indigo-800',
-  outline: 'border border-zinc-200 dark:border-zinc-700 bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-800 dark:text-zinc-200',
-  ghost: 'bg-transparent hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-700 dark:text-zinc-300',
-  destructive: 'bg-red-600 text-white hover:bg-red-700',
-  secondary: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-700',
+  default: 'clay-btn-primary',
+  outline: 'clay-raised text-(--text-primary) hover:bg-(--surface-raised)',
+  ghost: 'bg-transparent text-(--text-secondary) hover:bg-(--primary-soft) hover:text-(--primary)',
+  destructive: 'bg-(--danger) text-white clay-raised hover:bg-red-500',
+  secondary: 'clay-inset text-(--text-primary)',
   link: 'underline-offset-4 hover:underline text-indigo-600 bg-transparent',
 }
 
@@ -59,12 +59,12 @@ export interface BadgeProps extends React.HTMLAttributes<HTMLSpanElement> {
 }
 
 const badgeVariants = {
-  default: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900 dark:text-indigo-300',
-  outline: 'border border-zinc-300 dark:border-zinc-600 text-zinc-600 dark:text-zinc-400',
-  secondary: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400',
-  success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900 dark:text-emerald-300',
-  warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900 dark:text-amber-300',
-  muted: 'bg-zinc-100 dark:bg-zinc-800 text-zinc-500 dark:text-zinc-500',
+  default: 'bg-(--primary-soft) text-(--primary)',
+  outline: 'border border-(--text-secondary) text-(--text-secondary)',
+  secondary: 'bg-(--surface-raised) text-(--text-secondary)',
+  success: 'bg-(--success) text-white',
+  warning: 'bg-(--warning) text-white',
+  muted: 'bg-transparent text-(--text-muted)',
 }
 
 export const Badge = ({ className, variant = 'default', ...props }: BadgeProps) => (
@@ -84,7 +84,7 @@ export const Badge = ({ className, variant = 'default', ...props }: BadgeProps) 
 export const Card = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg shadow-sm',
+      'clay-raised',
       className
     )}
     {...props}
@@ -96,11 +96,11 @@ export const CardHeader = ({ className, ...props }: React.HTMLAttributes<HTMLDiv
 )
 
 export const CardTitle = ({ className, ...props }: React.HTMLAttributes<HTMLHeadingElement>) => (
-  <h3 className={cn('text-sm font-semibold text-zinc-900 dark:text-zinc-100', className)} {...props} />
+  <h3 className={cn('text-lg font-heading font-bold text-(--text-primary)', className)} {...props} />
 )
 
 export const CardDescription = ({ className, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn('text-xs text-zinc-500 dark:text-zinc-400 mt-0.5', className)} {...props} />
+  <p className={cn('text-sm text-(--text-secondary) mt-1', className)} {...props} />
 )
 
 export const CardContent = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
@@ -120,7 +120,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(({ className
   <input
     ref={ref}
     className={cn(
-      'flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 transition-shadow disabled:opacity-50',
+      'flex h-11 w-full clay-inset px-4 py-2 text-sm text-(--text-primary) placeholder:text-(--text-muted) transition-all disabled:opacity-50 border-none',
       className
     )}
     {...props}
@@ -137,7 +137,7 @@ export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(({ 
   <textarea
     ref={ref}
     className={cn(
-      'flex w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-0 transition-shadow resize-none disabled:opacity-50',
+      'flex w-full clay-inset px-4 py-3 text-sm text-(--text-primary) placeholder:text-(--text-muted) transition-all resize-none disabled:opacity-50 border-none',
       className
     )}
     {...props}
@@ -154,7 +154,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(({ classN
   <select
     ref={ref}
     className={cn(
-      'flex h-9 w-full rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 px-3 py-2 text-sm text-zinc-900 dark:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-50 cursor-pointer',
+      'flex h-11 w-full clay-inset px-4 py-2 text-sm text-(--text-primary) transition-all disabled:opacity-50 cursor-pointer border-none',
       className
     )}
     {...props}
@@ -171,11 +171,11 @@ export interface ProgressProps extends React.HTMLAttributes<HTMLDivElement> {
 
 export const Progress = ({ value, className, ...props }: ProgressProps) => (
   <div
-    className={cn('relative h-2 w-full overflow-hidden rounded-full bg-zinc-100 dark:bg-zinc-800', className)}
+    className={cn('relative h-2.5 w-full overflow-hidden rounded-full clay-inset', className)}
     {...props}
   >
     <div
-      className="h-full bg-indigo-600 transition-all duration-500 ease-out"
+      className="h-full bg-(--primary) transition-all duration-500 ease-out"
       style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
     />
   </div>
@@ -185,7 +185,7 @@ export const Progress = ({ value, className, ...props }: ProgressProps) => (
 // Skeleton
 // ============================================================
 export const Skeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn('skeleton', className)} {...props} />
+  <div className={cn('clay-skeleton', className)} {...props} />
 )
 
 // ============================================================
@@ -194,7 +194,7 @@ export const Skeleton = ({ className, ...props }: React.HTMLAttributes<HTMLDivEl
 export const Separator = ({ className, orientation = 'horizontal', ...props }: React.HTMLAttributes<HTMLDivElement> & { orientation?: 'horizontal' | 'vertical' }) => (
   <div
     className={cn(
-      'shrink-0 bg-zinc-200 dark:bg-zinc-800',
+      'shrink-0 bg-(--primary-soft)',
       orientation === 'horizontal' ? 'h-px w-full' : 'h-full w-px',
       className
     )}
@@ -216,7 +216,7 @@ const avatarSizes = { sm: 'h-7 w-7 text-xs', md: 'h-9 w-9 text-sm', lg: 'h-11 w-
 export const Avatar = ({ src, fallback, size = 'md', className, ...props }: AvatarProps) => (
   <div
     className={cn(
-      'relative shrink-0 overflow-hidden rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center font-semibold text-indigo-700 dark:text-indigo-300',
+      'relative shrink-0 overflow-hidden rounded-full clay-raised flex items-center justify-center font-bold text-(--primary)',
       avatarSizes[size],
       className
     )}
@@ -235,7 +235,7 @@ export const Avatar = ({ src, fallback, size = 'md', className, ...props }: Avat
 // ============================================================
 export const Label = ({ className, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
   <label
-    className={cn('text-xs font-medium text-zinc-700 dark:text-zinc-300 block mb-1', className)}
+    className={cn('text-[13px] font-bold text-(--text-secondary) block mb-1.5', className)}
     {...props}
   />
 )
@@ -271,9 +271,9 @@ export const Sheet = ({ open, onClose, children, side = 'right', width = 'w-[520
       {/* Panel */}
       <div
         className={cn(
-          'fixed z-50 top-0 bottom-0 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 shadow-2xl overflow-y-auto transition-transform duration-300 ease-out',
+          'fixed z-50 top-0 bottom-0 clay-floating shadow-2xl overflow-y-auto transition-transform duration-300 ease-out',
           width,
-          side === 'right' ? 'right-0 border-l' : 'left-0 border-r',
+          side === 'right' ? 'right-4 top-4 bottom-4' : 'left-4 top-4 bottom-4',
           open
             ? 'translate-x-0'
             : side === 'right'
@@ -306,8 +306,8 @@ export const Tabs = ({ tabs, active, onChange, className }: TabsProps) => (
         className={cn(
           'px-4 py-2.5 text-sm font-medium border-b-2 transition-colors duration-150 -mb-px',
           active === tab.id
-            ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400'
-            : 'border-transparent text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300'
+            ? 'border-(--primary) text-(--primary)'
+            : 'border-transparent text-(--text-secondary) hover:text-(--text-primary)'
         )}
       >
         {tab.label}

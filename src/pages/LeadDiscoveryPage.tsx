@@ -4,6 +4,7 @@ import L from 'leaflet'
 import {
   Radar, CheckCircle2, Loader2, MapPin, Phone, Globe, Clock,
   Filter, ArrowUpDown, Search, Sparkles, Map as MapIcon, List, X,
+  Utensils, ShoppingBag, Scissors, Activity, Wrench, Pill, Coffee, Monitor, Star, Home, Store
 } from 'lucide-react'
 import {
   Button, Badge, Card, Input, Select, Slider, Label,
@@ -31,7 +32,7 @@ function makeLeadIcon(score: number): L.DivIcon {
     popupAnchor: [0, -16],
     html: `<div style="
       width:32px;height:32px;border-radius:50%;
-      background:${color};border:3px solid white;
+      background:${color};border:3px solid var(--surface);
       box-shadow:0 2px 8px rgba(0,0,0,0.35);
       display:flex;align-items:center;justify-content:center;
       font-size:10px;font-weight:700;color:white;font-family:monospace;
@@ -45,7 +46,8 @@ const searchIcon = L.divIcon({
   iconAnchor: [10, 10],
   html: `<div style="
     width:20px;height:20px;border-radius:50%;
-    background:#6366f1;border:3px solid white;
+    width:20px;height:20px;border-radius:50%;
+    background:var(--primary);border:3px solid var(--surface);
     box-shadow:0 2px 8px rgba(0,0,0,0.5);
   "></div>`,
 })
@@ -68,11 +70,11 @@ const CATEGORIES: { value: BusinessCategory; label: string }[] = [
   { value: 'catering', label: 'Catering' },
 ]
 
-const CAT_EMOJI: Record<string, string> = {
-  restaurant: '🍽️', retail: '🛍️', salon: '💇', clinic: '🏥',
-  auto_service: '🔧', bakery: '🥐', pharmacy: '💊', tailor: '🧵',
-  cafe: '☕', gym: '💪', electronics: '🔌', jewellery: '💍',
-  real_estate: '🏠', catering: '🍱',
+const CAT_ICON: Record<string, React.ElementType> = {
+  restaurant: Utensils, retail: ShoppingBag, salon: Scissors, clinic: Activity,
+  auto_service: Wrench, bakery: Coffee, pharmacy: Pill, tailor: Scissors,
+  cafe: Coffee, gym: Activity, electronics: Monitor, jewellery: Star,
+  real_estate: Home, catering: Utensils,
 }
 
 // ── Score circle SVG ──────────────────────────────────────────
@@ -83,11 +85,11 @@ function ScoreCircle({ score }: { score: number }) {
   return (
     <div className="relative h-12 w-12 shrink-0">
       <svg width="48" height="48" viewBox="0 0 48 48" className="-rotate-90">
-        <circle cx="24" cy="24" r={r} fill="none" stroke="var(--border)" strokeWidth="3" />
+        <circle cx="24" cy="24" r={r} fill="none" stroke="var(--primary-soft)" strokeWidth="3" />
         <circle cx="24" cy="24" r={r} fill="none" stroke={color} strokeWidth="3"
           strokeDasharray={`${dash} ${circ - dash}`} strokeLinecap="round" />
       </svg>
-      <span className={cn('absolute inset-0 flex items-center justify-center text-xs font-bold font-mono', getScoreColor(score))}>
+      <span className="absolute inset-0 flex items-center justify-center text-xs font-bold font-mono text-(--text-primary)">
         {score}
       </span>
     </div>
@@ -96,6 +98,7 @@ function ScoreCircle({ score }: { score: number }) {
 
 // ── Lead card ─────────────────────────────────────────────────
 function LeadCard({ lead, index, onClick }: { lead: Lead; index: number; onClick: () => void }) {
+  const LeadIcon = CAT_ICON[lead.category] || Store
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
@@ -103,31 +106,31 @@ function LeadCard({ lead, index, onClick }: { lead: Lead; index: number; onClick
       transition={{ delay: index * 0.06, duration: 0.25, ease: 'easeOut' }}
     >
       <Card
-        className="p-4 hover:shadow-md hover:border-indigo-200 dark:hover:border-indigo-700 transition-all duration-200 cursor-pointer group"
+        className="p-4 hover:-translate-y-1 transition-all duration-300 cursor-pointer group"
         onClick={onClick}
       >
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-lg shrink-0">
-            {CAT_EMOJI[lead.category] ?? '🏪'}
+          <div className="h-10 w-10 rounded-lg clay-inset flex items-center justify-center text-(--primary) shrink-0">
+            <LeadIcon className="h-5 w-5" />
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div className="min-w-0">
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                <h3 className="text-sm font-bold text-(--text-primary) truncate group-hover:text-(--primary) transition-colors">
                   {lead.name}
                 </h3>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">{getCategoryLabel(lead.category)}</p>
+                <p className="text-xs text-(--text-secondary) mt-0.5">{getCategoryLabel(lead.category)}</p>
               </div>
               <ScoreCircle score={lead.score} />
             </div>
             <div className="mt-2 space-y-1">
-              <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                <MapPin className="h-3 w-3 shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs text-(--text-secondary)">
+                <MapPin className="h-3 w-3 shrink-0 text-(--primary)" />
                 <span className="truncate">{lead.address}{lead.city ? `, ${lead.city}` : ''}</span>
               </div>
               {lead.phone && (
-                <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-                  <Phone className="h-3 w-3 shrink-0" />
+                <div className="flex items-center gap-1.5 text-xs text-(--text-secondary)">
+                  <Phone className="h-3 w-3 shrink-0 text-(--primary)" />
                   <span className="font-mono">{lead.phone}</span>
                 </div>
               )}
@@ -143,7 +146,7 @@ function LeadCard({ lead, index, onClick }: { lead: Lead; index: number; onClick
                   {lead.score >= 80 ? 'High priority' : lead.score >= 50 ? 'Medium' : 'Low'}
                 </Badge>
               </div>
-              <Button variant="ghost" size="sm" className="text-xs h-7 px-2">View →</Button>
+              <Button variant="ghost" size="sm" className="text-xs h-7 px-2 hover:bg-(--surface-raised)">View →</Button>
             </div>
           </div>
         </div>
@@ -176,13 +179,13 @@ function EmptyState() {
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center py-20 text-center"
     >
-      <div className="h-20 w-20 rounded-2xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center mb-5">
-        <Radar className="h-10 w-10 text-indigo-400" />
+      <div className="h-20 w-20 rounded-3xl clay-raised flex items-center justify-center mb-5">
+        <Radar className="h-10 w-10 text-(--primary)" />
       </div>
-      <h3 className="text-base font-semibold text-zinc-800 dark:text-zinc-200 mb-2">
+      <h3 className="text-lg font-heading font-bold text-(--text-primary) mb-2">
         Discover your next clients
       </h3>
-      <p className="text-sm text-zinc-500 dark:text-zinc-400 max-w-sm leading-relaxed">
+      <p className="text-sm text-(--text-secondary) max-w-sm leading-relaxed">
         Enter a location or click the map to set a search center, choose categories, then hit Discover. ClientPilot AI will scan OpenStreetMap and score each lead with AI.
       </p>
     </motion.div>
@@ -368,11 +371,11 @@ export function LeadDiscoveryPage() {
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* ── Top control bar ── */}
-      <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shrink-0 space-y-3">
+      <div className="p-4 shrink-0 space-y-3 z-10 clay-floating rounded-none border-b border-transparent">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Lead Discovery</h1>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">
+            <h1 className="text-lg font-heading font-bold text-(--text-primary)">Lead Discovery</h1>
+            <p className="text-xs text-(--text-secondary)">
               Powered by OpenStreetMap + Gemini AI scoring
             </p>
           </div>
@@ -380,20 +383,20 @@ export function LeadDiscoveryPage() {
             <button
               onClick={() => setViewMode('split')}
               title="Map + List view"
-              className={cn('p-1.5 rounded-md transition-colors',
+              className={cn('p-1.5 rounded-xl transition-all duration-200',
                 viewMode === 'split'
-                  ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400'
-                  : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800')}
+                  ? 'clay-raised text-(--primary)'
+                  : 'text-(--text-secondary) hover:text-(--text-primary)')}
             >
               <MapIcon className="h-4 w-4" />
             </button>
             <button
               onClick={() => setViewMode('list')}
               title="List only view"
-              className={cn('p-1.5 rounded-md transition-colors',
+              className={cn('p-1.5 rounded-xl transition-all duration-200',
                 viewMode === 'list'
-                  ? 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400'
-                  : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800')}
+                  ? 'clay-raised text-(--primary)'
+                  : 'text-(--text-secondary) hover:text-(--text-primary)')}
             >
               <List className="h-4 w-4" />
             </button>
@@ -403,7 +406,7 @@ export function LeadDiscoveryPage() {
         {/* Location search bar */}
         <div className="flex gap-2 items-center flex-wrap">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-zinc-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-(--text-secondary)" />
             <Input
               value={geoSearch}
               onChange={(e) => setGeoSearch(e.target.value)}
@@ -414,13 +417,13 @@ export function LeadDiscoveryPage() {
             {geoSearch && (
               <button
                 onClick={() => setGeoSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-(--text-secondary) hover:text-(--text-primary)"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
-          <Button onClick={geocodeSearch} isLoading={geoLoading} size="sm" variant="outline" className="gap-1.5 h-9">
+          <Button onClick={geocodeSearch} isLoading={geoLoading} size="md" variant="outline" className="gap-1.5">
             <MapPin className="h-3.5 w-3.5" />
             Go to Location
           </Button>
@@ -438,30 +441,33 @@ export function LeadDiscoveryPage() {
 
         {/* Category pills */}
         <div className="flex flex-wrap gap-1.5">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => toggleCat(cat.value)}
-              className={cn(
-                'px-2.5 py-1 rounded-full text-xs font-medium border transition-all duration-150',
-                selectedCats.includes(cat.value)
-                  ? 'bg-indigo-600 text-white border-indigo-600'
-                  : 'bg-white dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 border-zinc-200 dark:border-zinc-700 hover:border-indigo-300 hover:text-indigo-600'
-              )}
-            >
-              {CAT_EMOJI[cat.value]} {cat.label}
-            </button>
-          ))}
+          {CATEGORIES.map((cat) => {
+            const CatIcon = CAT_ICON[cat.value] || Store
+            return (
+              <button
+                key={cat.value}
+                onClick={() => toggleCat(cat.value)}
+                className={cn(
+                  'px-3 py-1.5 rounded-2xl text-xs font-bold transition-all duration-300 flex items-center gap-1.5',
+                  selectedCats.includes(cat.value)
+                    ? 'clay-raised text-(--primary)'
+                    : 'clay-inset text-(--text-secondary) hover:text-(--text-primary)'
+                )}
+              >
+                <CatIcon className="h-3.5 w-3.5" /> {cat.label}
+              </button>
+            )
+          })}
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
           {locationText && (
-            <span className="text-xs text-zinc-500 flex items-center gap-1">
-              <MapPin className="h-3 w-3 text-indigo-500" />
+            <span className="text-xs text-(--text-secondary) flex items-center gap-1.5 font-semibold">
+              <MapPin className="h-3.5 w-3.5 text-(--primary)" />
               {locationText.length > 60 ? locationText.slice(0, 60) + '…' : locationText}
             </span>
           )}
-          <Button onClick={handleDiscover} isLoading={isRunning} size="sm" className="gap-2 ml-auto">
+          <Button onClick={handleDiscover} isLoading={isRunning} size="md" className="gap-2 ml-auto">
             <Sparkles className="h-4 w-4" />
             {isRunning ? 'Discovering…' : 'Discover Leads'}
           </Button>
@@ -472,7 +478,7 @@ export function LeadDiscoveryPage() {
       <div className="flex-1 min-h-0 flex overflow-hidden">
         {/* Map pane */}
         {viewMode === 'split' && (
-          <div className="w-1/2 shrink-0 p-3 border-r border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950">
+          <div className="w-1/2 shrink-0 p-4 border-r border-white/5">
             <MapPanel
               center={mapCenter}
               radius={radius}
@@ -480,7 +486,7 @@ export function LeadDiscoveryPage() {
               onMapClick={handleMapClick}
               onLeadClick={handleLeadClick}
             />
-            <p className="text-[10px] text-zinc-400 mt-2 text-center">
+            <p className="text-[11px] font-semibold text-(--text-secondary) mt-3 text-center">
               Click the map to set search center · Markers = discovered leads
             </p>
           </div>
@@ -496,9 +502,9 @@ export function LeadDiscoveryPage() {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
               >
-                <Card className="p-4">
-                  <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 mb-3 flex items-center gap-2">
-                    <Loader2 className="h-4 w-4 animate-spin text-indigo-500" />
+                <Card className="p-6">
+                  <p className="text-sm font-bold text-(--text-primary) mb-4 flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin text-(--primary)" />
                     Running discovery pipeline…
                   </p>
                   <ProgressIndicator steps={steps} />
@@ -513,22 +519,22 @@ export function LeadDiscoveryPage() {
           {/* Filter bar + cards */}
           {hasSearched && !isRunning && discoveryResults.length > 0 && (
             <div className="space-y-3">
-              <div className="flex items-center justify-between flex-wrap gap-2">
-                <p className="text-sm text-zinc-600 dark:text-zinc-400">
-                  <span className="font-semibold text-zinc-900 dark:text-zinc-100">{filtered.length}</span> leads found
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <p className="text-sm font-medium text-(--text-secondary)">
+                  <span className="font-bold text-(--text-primary)">{filtered.length}</span> leads found
                 </p>
                 <div className="flex items-center gap-2">
-                  <Filter className="h-3.5 w-3.5 text-zinc-400" />
-                  <span className="text-xs text-zinc-500">Score:</span>
+                  <Filter className="h-4 w-4 text-(--text-secondary)" />
+                  <span className="text-xs font-semibold text-(--text-secondary)">Score:</span>
                   {(['all', 'high', 'medium', 'low'] as const).map((band) => (
                     <button
                       key={band}
                       onClick={() => setScoreFilter(band)}
                       className={cn(
-                        'px-2 py-0.5 rounded text-xs font-medium transition-colors',
+                        'px-3 py-1 rounded-xl text-xs font-bold transition-colors',
                         scoreFilter === band
-                          ? 'bg-indigo-600 text-white'
-                          : 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700'
+                          ? 'clay-raised text-(--primary)'
+                          : 'clay-inset text-(--text-secondary) hover:text-(--text-primary)'
                       )}
                     >
                       {band === 'all' ? 'All' : band.charAt(0).toUpperCase() + band.slice(1)}
@@ -536,7 +542,7 @@ export function LeadDiscoveryPage() {
                   ))}
                   <button
                     onClick={() => setSortBy(sortBy === 'score' ? 'name' : 'score')}
-                    className="px-2 py-0.5 rounded text-xs font-medium bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 flex items-center gap-1"
+                    className="px-3 py-1 rounded-xl text-xs font-bold clay-inset text-(--text-secondary) hover:text-(--text-primary) flex items-center gap-1.5 ml-2"
                   >
                     <ArrowUpDown className="h-3 w-3" />
                     {sortBy === 'score' ? 'By Score' : 'By Name'}
@@ -563,7 +569,7 @@ export function LeadDiscoveryPage() {
           {/* No results after search */}
           {hasSearched && !isRunning && discoveryResults.length === 0 && steps.length > 0 && (
             <div className="text-center py-16">
-              <p className="text-sm text-zinc-400 dark:text-zinc-500">No businesses found. Try adjusting the radius or categories.</p>
+              <p className="text-sm font-semibold text-(--text-secondary)">No businesses found. Try adjusting the radius or categories.</p>
             </div>
           )}
         </div>

@@ -1,209 +1,217 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=general-sans@400,500,600,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
 
 @import "tailwindcss";
 
 /* ============================================================
-   DESIGN TOKENS — Custom Properties (Deep Forest Green Claymorphism)
+   TAILWIND THEME EXTENSIONS
    ============================================================ */
-:root {
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+@theme {
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-heading: 'General Sans', system-ui, sans-serif;
 
-  /* Color Palette */
-  --forest-950: #081A12;
-  --forest-900: #0D241A;
-  --forest-850: #103122;
-  --forest-800: #16402C;
-  --forest-700: #1D5A3D;
-  --forest-600: #2E7D57;
-  --forest-500: #46A97A;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-raised: var(--surface-raised);
   
-  --mint: #63D9A0;
-  --emerald: #50E3A4;
-  --gold: #FFBE55;
-  --purple: #8B5CF6;
-  --white: #FFFFFF;
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
   
-  /* Text */
-  --text-primary: var(--white);
-  --text-secondary: rgba(255,255,255,0.7);
-  --text-muted: rgba(255,255,255,0.45);
-
-  /* Surfaces */
-  --bg-gradient: radial-gradient(circle at top center, #1D5A3D 0%, #103122 35%, #0D241A 70%, #081A12 100%);
-  --surface-clay: linear-gradient(145deg, rgba(32,74,54,0.9), rgba(17,37,28,0.95));
-  --surface-glass: rgba(17, 40, 29, 0.75);
-  --surface-glass-border: rgba(255,255,255,0.08);
-
-  /* Shadows */
-  --clay-shadow-out: 12px 12px 35px rgba(0,0,0,0.55), -8px -8px 18px rgba(255,255,255,0.03);
-  --clay-shadow-in: inset 1px 1px 0 rgba(255,255,255,0.04);
-  --sidebar-shadow: 20px 20px 50px rgba(0,0,0,0.55), -10px -10px 25px rgba(255,255,255,0.03);
+  --color-accent: var(--accent);
+  
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
 }
 
 /* ============================================================
-   BASE RESET
+   DESIGN TOKENS — Light & Dark Mode
+   ============================================================ */
+:root {
+  /* Colors */
+  --bg: #EAF1E8;
+  --surface: #F4F8F1;
+  --surface-raised: #FBFDF9;
+  
+  --primary: #1E5631;
+  --primary-hover: #26703F;
+  --primary-soft: #CDE3D1;
+  
+  --accent: #D7B56D;
+  
+  --text-primary: #142B1C;
+  --text-secondary: #4D6356;
+  
+  --success: #3E8E5A;
+  --warning: #C98A3C;
+  --danger: #B6453F;
+
+  /* Shadows (Claymorphism Light) */
+  --shadow-clay-raised: 8px 8px 20px rgba(20, 50, 35, 0.18), -6px -6px 16px rgba(255, 255, 255, 0.75);
+  --shadow-clay-raised-hover: 10px 10px 24px rgba(20, 50, 35, 0.22), -8px -8px 20px rgba(255, 255, 255, 0.9);
+  --shadow-clay-floating: 16px 16px 40px rgba(20, 50, 35, 0.25), -12px -12px 30px rgba(255, 255, 255, 0.9);
+  --shadow-clay-inset: inset 6px 6px 14px rgba(20, 50, 35, 0.20), inset -4px -4px 10px rgba(255, 255, 255, 0.6);
+  --shadow-clay-focus-ring: 0 0 0 3px rgba(30, 86, 49, 0.2);
+
+  /* Surface Gradients */
+  --gradient-clay: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 100%);
+  --gradient-clay-primary: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.dark {
+  /* Colors */
+  --bg: #0E1611;
+  --surface: #16201A;
+  --surface-raised: #1C2820;
+  
+  --primary: #5FCB85;
+  --primary-hover: #79DA9C;
+  --primary-soft: #1F3327;
+  
+  --accent: #E6C988;
+  
+  --text-primary: #EAF3EC;
+  --text-secondary: #9BB3A3;
+  
+  --success: #5FCB85;
+  --warning: #E0A85B;
+  --danger: #E08079;
+
+  /* Shadows (Claymorphism Dark) */
+  --shadow-clay-raised: 8px 8px 20px rgba(0, 0, 0, 0.55), -6px -6px 16px rgba(255, 255, 255, 0.04);
+  --shadow-clay-raised-hover: 10px 10px 24px rgba(0, 0, 0, 0.65), -8px -8px 20px rgba(255, 255, 255, 0.06);
+  --shadow-clay-floating: 16px 16px 40px rgba(0, 0, 0, 0.7), -12px -12px 30px rgba(255, 255, 255, 0.06);
+  --shadow-clay-inset: inset 6px 6px 14px rgba(0, 0, 0, 0.55), inset -4px -4px 10px rgba(255, 255, 255, 0.03);
+  --shadow-clay-focus-ring: 0 0 0 3px rgba(95, 203, 133, 0.15);
+
+  /* Surface Gradients */
+  --gradient-clay: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 100%);
+  --gradient-clay-primary: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+/* ============================================================
+   BASE RESET & GLOBAL STYLES
    ============================================================ */
 *, *::before, *::after {
   box-sizing: border-box;
 }
 
 html {
-  font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  color-scheme: dark;
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: var(--bg-gradient);
-  background-attachment: fixed;
+  background-color: var(--bg);
   color: var(--text-primary);
+  font-family: var(--font-sans);
   line-height: 1.5;
-  font-size: 14px;
+  transition: background-color 400ms ease, color 400ms ease;
+}
+
+h1, h2, h3, h4, h5, h6, .font-heading {
+  font-family: var(--font-heading);
+  letter-spacing: -0.01em;
 }
 
 /* ============================================================
-   TYPOGRAPHY UTILITIES
+   SCROLLBAR
    ============================================================ */
-.font-mono {
-  font-family: var(--font-mono) !important;
-}
-.font-sans {
-  font-family: var(--font-sans) !important;
-}
-
-/* ============================================================
-   SCROLLBAR STYLING
-   ============================================================ */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
-  border-radius: 3px;
+  background: var(--primary-soft);
+  border-radius: 4px;
 }
-::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.25);
-}
-
-/* ============================================================
-   ANIMATIONS & EFFECTS
-   ============================================================ */
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; transform: scale(1); box-shadow: 0 0 10px rgba(99, 217, 160, 0.5); }
-  50% { opacity: 0.6; transform: scale(0.9); box-shadow: 0 0 2px rgba(99, 217, 160, 0.2); }
-}
-
-@keyframes float-subtle {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-4px); }
-}
-
-.animate-pulse-glow {
-  animation: pulse-glow 2s ease-in-out infinite;
-}
+::-webkit-scrollbar-thumb:hover { background: var(--primary); }
 
 /* ============================================================
    CLAYMORPHISM UTILITIES
    ============================================================ */
-.clay-card {
-  background: var(--surface-clay);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 30px;
-  box-shadow: var(--clay-shadow-out), var(--clay-shadow-in);
-  transition: all 0.35s ease;
+/* Raised Card */
+.clay-raised {
+  background-color: var(--surface);
+  background-image: var(--gradient-clay);
+  border-radius: 28px;
+  box-shadow: var(--shadow-clay-raised);
+  border: 1px solid transparent;
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 300ms cubic-bezier(0.34, 1.56, 0.64, 1), background-color 400ms ease;
 }
 
-.clay-card:hover {
-  transform: translateY(-6px) scale(1.02);
+/* Floating Surface (Modals, Popovers) */
+.clay-floating {
+  background-color: var(--surface-raised);
+  background-image: var(--gradient-clay);
+  border-radius: 32px;
+  box-shadow: var(--shadow-clay-floating);
+  transition: background-color 400ms ease;
 }
 
-.clay-panel {
-  background: var(--surface-clay);
-  border: 1px solid rgba(255,255,255,0.06);
-  border-radius: 30px;
-  box-shadow: var(--clay-shadow-out), var(--clay-shadow-in);
+/* Inset Well (Inputs, depressed states) */
+.clay-inset {
+  background-color: var(--bg);
+  border-radius: 16px;
+  box-shadow: var(--shadow-clay-inset);
+  transition: box-shadow 200ms ease, background-color 400ms ease;
+}
+.clay-inset:focus-within {
+  box-shadow: var(--shadow-clay-inset), var(--shadow-clay-focus-ring);
+  outline: none;
 }
 
+/* Primary Button */
 .clay-btn-primary {
-  background: linear-gradient(145deg, var(--emerald), var(--forest-600));
+  background-color: var(--primary);
+  background-image: var(--gradient-clay-primary);
+  color: var(--bg);
   border-radius: 20px;
-  box-shadow: 0 10px 30px rgba(80,227,164,0.35);
-  color: var(--forest-950);
-  font-weight: 700;
-  transition: all 0.3s ease;
+  box-shadow: var(--shadow-clay-raised);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 300ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 300ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  cursor: pointer;
   border: none;
 }
-
 .clay-btn-primary:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 14px 40px rgba(80,227,164,0.45);
+  background-color: var(--primary-hover);
+  box-shadow: var(--shadow-clay-raised-hover);
+  transform: translateY(-1px);
+}
+.clay-btn-primary:active {
+  box-shadow: var(--shadow-clay-inset);
+  transform: translateY(1px);
 }
 
-.clay-btn-secondary {
-  background: rgba(255,255,255,0.05);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.1);
+/* Activity Items / Rows */
+.clay-row {
   border-radius: 20px;
-  color: var(--white);
-  font-weight: 600;
-  transition: all 0.3s ease;
+  padding: 12px 16px;
+  background-color: transparent;
+  transition: transform 200ms cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 200ms ease, background-color 200ms ease;
+  margin-bottom: 8px;
 }
-
-.clay-btn-secondary:hover {
-  background: rgba(255,255,255,0.1);
+.clay-row:hover {
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-clay-raised);
   transform: translateY(-2px);
 }
 
-/* ============================================================
-   ACTIVITY ITEM STYLES
-   ============================================================ */
-.activity-card {
-  background: rgba(255,255,255,0.03);
+/* Skeleton Pulse */
+@keyframes clay-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+.clay-skeleton {
+  background-color: var(--primary-soft);
+  background-image: var(--gradient-clay);
   border-radius: 20px;
-  box-shadow: inset 1px 1px 5px rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.05);
-}
-
-/* ============================================================
-   SIDEBAR NAV ITEM STYLES
-   ============================================================ */
-.nav-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  border-radius: 20px;
-  color: var(--text-secondary);
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  white-space: nowrap;
-  overflow: hidden;
-  border: 1px solid transparent;
-}
-
-.nav-item:hover {
-  background: rgba(255,255,255,0.05);
-  color: var(--white);
-}
-
-.nav-item.active {
-  background: linear-gradient(145deg, rgba(80,227,164,0.18), rgba(46,125,87,0.3));
-  box-shadow: inset 3px 3px 6px rgba(255,255,255,0.05), inset -6px -6px 15px rgba(0,0,0,0.4), 0 0 30px rgba(80,227,164,0.2);
-  color: var(--mint);
-  border-color: rgba(99, 217, 160, 0.15);
-}
-
-.nav-item.active svg {
-  filter: drop-shadow(0 0 6px rgba(99,217,160,0.6));
+  animation: clay-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

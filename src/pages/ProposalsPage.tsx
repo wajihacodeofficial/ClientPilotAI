@@ -1,7 +1,8 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import {
   FileText, Calendar, MapPin, Eye, Edit2, Save, Trash2,
-  RefreshCw, X, ArrowUpRight, CheckCircle2
+  RefreshCw, X, ArrowUpRight, CheckCircle2,
+  Utensils, ShoppingBag, Scissors, Activity, Wrench, Pill, Coffee, Monitor, Star, Home, Store
 } from 'lucide-react'
 import {
   Button, Badge, Input, Textarea, Select, Separator, Sheet, Skeleton
@@ -73,11 +74,11 @@ const STATUS_META: Record<ProposalStatus, {
   }
 }
 
-const CAT_EMOJI: Record<string, string> = {
-  restaurant: '🍽️', retail: '🛍️', salon: '💇', clinic: '🏥',
-  auto_service: '🔧', bakery: '🥐', pharmacy: '💊', tailor: '🧵',
-  cafe: '☕', gym: '💪', electronics: '🔌', jewellery: '💍',
-  real_estate: '🏠', catering: '🍱'
+const CAT_ICON: Record<string, React.ElementType> = {
+  restaurant: Utensils, retail: ShoppingBag, salon: Scissors, clinic: Activity,
+  auto_service: Wrench, bakery: Coffee, pharmacy: Pill, tailor: Scissors,
+  cafe: Coffee, gym: Activity, electronics: Monitor, jewellery: Star,
+  real_estate: Home, catering: Utensils,
 }
 
 // ── Markdown Parser Helper ────────────────────────────────────
@@ -136,7 +137,7 @@ function KanbanCard({ proposal, onSelect, onDragStart }: KanbanCardProps) {
   const meta = STATUS_META[proposal.status]
   const leadName = proposal.leads?.business_name || 'Unknown Business'
   const leadCat = proposal.leads?.category || 'general'
-  const emoji = CAT_EMOJI[leadCat] || '🏪'
+  const LeadIcon = CAT_ICON[leadCat] || Store
 
   return (
     <div
@@ -154,7 +155,7 @@ function KanbanCard({ proposal, onSelect, onDragStart }: KanbanCardProps) {
         </div>
 
         <div className="flex items-center gap-1.5 text-xs text-zinc-500 dark:text-zinc-400">
-          <span className="shrink-0">{emoji}</span>
+          <LeadIcon className="h-3.5 w-3.5 shrink-0" />
           <span className="font-medium text-zinc-700 dark:text-zinc-300 truncate">{leadName}</span>
         </div>
 

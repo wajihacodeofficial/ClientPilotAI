@@ -28,20 +28,15 @@ export function Sidebar() {
   });
 
   return (
-    <motion.aside
-      animate={{ width: collapsed ? 64 : 270 }}
-      transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-      style={{
-        background: 'var(--surface-glass)',
-        backdropFilter: 'blur(30px)',
-        border: '1px solid var(--surface-glass-border)',
-        borderRadius: '0 32px 32px 0',
-        boxShadow: 'var(--sidebar-shadow)'
-      }}
-      className="relative shrink-0 h-screen flex flex-col overflow-hidden z-20"
+    <motion.div className="py-4 pl-4 h-screen"
+      animate={{ width: collapsed ? 80 + 16 : 280 + 16 }}
+      transition={{ duration: 0.3, ease: [0.34, 1.56, 0.64, 1] }}
     >
+      <motion.aside
+        className="clay-floating h-full flex flex-col overflow-hidden relative z-20"
+      >
       {/* Logo / Brand */}
-      <div className="h-16 flex items-center px-4 shrink-0 border-b border-white/10">
+      <div className="h-20 flex items-center px-5 shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
           {/* Logo image */}
           <img
@@ -58,8 +53,8 @@ export function Sidebar() {
                 transition={{ duration: 0.15 }}
                 className="min-w-0"
               >
-                <p className="text-[14px] font-extrabold text-white leading-none whitespace-nowrap">
-                  ClientPilot<span className="text-(--mint) drop-shadow-[0_0_8px_rgba(99,217,160,0.5)]"> AI</span>
+                <p className="text-[15px] font-bold text-(--text-primary) leading-none whitespace-nowrap">
+                  ClientPilot<span className="text-(--primary) ml-1 font-black">AI</span>
                 </p>
                 <p className="text-[10px] text-(--text-secondary) leading-none mt-1 whitespace-nowrap font-mono tracking-widest uppercase">
                   Lead Acquisition
@@ -71,7 +66,7 @@ export function Sidebar() {
       </div>
 
       {/* Nav */}
-      <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto py-2 px-3 space-y-1">
         {filteredNavItems.map(({ to, label, icon: Icon, end }) => {
           const isActive = end ? location.pathname === to : location.pathname.startsWith(to)
           return (
@@ -79,10 +74,18 @@ export function Sidebar() {
               key={to}
               to={to}
               end={end}
-              className={cn('nav-item', isActive && 'active')}
+              className={cn(
+                'flex items-center gap-3 px-3 py-2.5 rounded-2xl font-semibold text-[14px] transition-all relative overflow-hidden',
+                isActive 
+                  ? 'clay-inset bg-(--primary-soft) text-(--primary)' 
+                  : 'text-(--text-secondary) hover:bg-(--surface-raised) hover:text-(--text-primary)'
+              )}
               title={collapsed ? label : undefined}
             >
-              <Icon className="h-4 w-4 shrink-0" />
+              {isActive && (
+                <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full bg-(--primary)" />
+              )}
+              <Icon className={cn("h-[18px] w-[18px] shrink-0", isActive && "ml-1")} />
               <AnimatePresence>
                 {!collapsed && (
                   <motion.span
@@ -108,24 +111,25 @@ export function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="mx-3 mb-4 px-4 py-3 rounded-2xl bg-white/5 border border-white/10 shadow-[inset_0_0_10px_rgba(255,255,255,0.02)] backdrop-blur-md"
+            className="mx-4 mb-4 px-4 py-3 clay-inset"
           >
-            <p className="text-[10px] font-bold text-(--mint) uppercase tracking-widest drop-shadow-[0_0_4px_rgba(99,217,160,0.3)]">Workspace</p>
-            <p className="text-sm font-semibold text-white mt-1 truncate">Acme Software Agency</p>
+            <p className="text-[10px] font-bold text-(--text-secondary) uppercase tracking-widest">Workspace</p>
+            <p className="text-[13px] font-bold text-(--text-primary) mt-1 truncate">Acme Software Agency</p>
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Collapse toggle */}
-      <div className="p-3 border-t border-white/10">
+      <div className="p-4 pt-0">
         <button
           onClick={toggle}
-          className="w-full flex items-center justify-center h-10 rounded-xl bg-white/5 hover:bg-white/10 text-(--text-secondary) hover:text-white transition-all shadow-[inset_0_1px_1px_rgba(255,255,255,0.1)]"
+          className="w-full flex items-center justify-center h-10 clay-raised text-(--text-secondary) hover:text-(--primary)"
           title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
         >
           {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
         </button>
       </div>
-    </motion.aside>
+      </motion.aside>
+    </motion.div>
   )
 }

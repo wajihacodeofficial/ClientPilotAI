@@ -19,10 +19,10 @@ import { cn, getCategoryLabel, getScoreColor, getPipelineLabel } from '@/lib/uti
 const STAGES: PipelineStage[] = ['discovery', 'qualified', 'contacted', 'client']
 
 const STAGE_META: Record<PipelineStage, { color: string; dot: string; bg: string }> = {
-  discovery: { color: 'text-indigo-600 dark:text-indigo-400', dot: 'bg-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-950/50' },
-  qualified: { color: 'text-teal-600 dark:text-teal-400', dot: 'bg-teal-500', bg: 'bg-teal-50 dark:bg-teal-950/50' },
-  contacted: { color: 'text-amber-600 dark:text-amber-400', dot: 'bg-amber-500', bg: 'bg-amber-50 dark:bg-amber-950/50' },
-  client: { color: 'text-emerald-600 dark:text-emerald-400', dot: 'bg-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-950/50' },
+  discovery: { color: 'text-(--primary)', dot: 'bg-(--primary)', bg: 'clay-inset' },
+  qualified: { color: 'text-(--success)', dot: 'bg-(--success)', bg: 'clay-inset' },
+  contacted: { color: 'text-(--warning)', dot: 'bg-(--warning)', bg: 'clay-inset' },
+  client: { color: 'text-(--text-primary)', dot: 'bg-(--text-primary)', bg: 'clay-inset' },
 }
 
 const CAT_EMOJI: Record<string, string> = {
@@ -50,8 +50,8 @@ function KanbanCard({ lead, isDragging }: { lead: Lead; isDragging?: boolean }) 
         initial={{ opacity: 0, scale: 0.96 }}
         animate={{ opacity: 1, scale: 1 }}
         className={cn(
-          'bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-lg p-3.5 shadow-sm hover:shadow-md hover:border-teal-300 dark:hover:border-teal-700 transition-all duration-150 group cursor-pointer',
-          isDragging && 'shadow-xl ring-2 ring-teal-400'
+          'clay-raised p-4 hover:-translate-y-1 transition-all duration-300 group cursor-pointer border border-transparent',
+          isDragging && 'shadow-2xl ring-2 ring-(--primary)'
         )}
         onClick={() => setSelectedLeadId(lead.id)}
       >
@@ -60,7 +60,7 @@ function KanbanCard({ lead, isDragging }: { lead: Lead; isDragging?: boolean }) 
           <div
             {...attributes}
             {...listeners}
-            className="mt-0.5 text-zinc-300 dark:text-zinc-600 hover:text-zinc-400 cursor-grab active:cursor-grabbing shrink-0 touch-none"
+            className="mt-0.5 text-(--text-muted) hover:text-(--text-secondary) cursor-grab active:cursor-grabbing shrink-0 touch-none"
             onClick={(e) => e.stopPropagation()}
           >
             <GripVertical className="h-4 w-4" />
@@ -68,7 +68,7 @@ function KanbanCard({ lead, isDragging }: { lead: Lead; isDragging?: boolean }) 
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-1 mb-1">
-              <span className="text-xs font-semibold text-zinc-900 dark:text-zinc-100 truncate group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+              <span className="text-xs font-bold text-(--text-primary) truncate group-hover:text-(--primary) transition-colors">
                 {lead.name}
               </span>
               <span className={cn('text-xs font-bold font-mono shrink-0', getScoreColor(lead.score))}>
@@ -76,12 +76,12 @@ function KanbanCard({ lead, isDragging }: { lead: Lead; isDragging?: boolean }) 
               </span>
             </div>
 
-            <p className="text-[11px] text-zinc-500 dark:text-zinc-400 mb-2">
+            <p className="text-[11px] font-semibold text-(--text-secondary) mb-2">
               {CAT_EMOJI[lead.category]} {getCategoryLabel(lead.category)}
             </p>
 
-            <div className="flex items-center gap-1.5 text-[11px] text-zinc-400 dark:text-zinc-500 mb-2">
-              <MapPin className="h-3 w-3 shrink-0" />
+            <div className="flex items-center gap-1.5 text-[11px] font-semibold text-(--text-secondary) mb-2">
+              <MapPin className="h-3 w-3 shrink-0 text-(--primary)" />
               <span className="truncate">{lead.city}</span>
             </div>
 
@@ -97,8 +97,8 @@ function KanbanCard({ lead, isDragging }: { lead: Lead; isDragging?: boolean }) 
                 )}
               </Badge>
               {lead.rating && (
-                <span className="flex items-center gap-0.5 text-[10px] text-zinc-400">
-                  <Star className="h-2.5 w-2.5 text-amber-400 fill-amber-400" />
+                <span className="flex items-center gap-0.5 text-[10px] font-semibold text-(--text-secondary)">
+                  <Star className="h-2.5 w-2.5 text-(--warning) fill-(--warning)" />
                   {lead.rating}
                 </span>
               )}
@@ -117,14 +117,14 @@ function KanbanColumn({ stage, leads }: { stage: PipelineStage; leads: Lead[] })
   return (
     <div className="flex flex-col min-w-[260px] max-w-[280px] flex-1">
       {/* Column header */}
-      <div className={cn('rounded-lg px-3.5 py-2.5 mb-3 flex items-center justify-between', meta.bg)}>
-        <div className="flex items-center gap-2">
+      <div className={cn('rounded-xl px-4 py-3 mb-4 flex items-center justify-between', meta.bg)}>
+        <div className="flex items-center gap-2.5">
           <div className={cn('h-2 w-2 rounded-full', meta.dot)} />
-          <span className={cn('text-xs font-semibold', meta.color)}>
+          <span className={cn('text-[13px] font-bold uppercase tracking-wide', meta.color)}>
             {getPipelineLabel(stage)}
           </span>
         </div>
-        <span className={cn('text-xs font-bold font-mono px-1.5 py-0.5 rounded bg-white/60 dark:bg-zinc-900/60', meta.color)}>
+        <span className={cn('text-xs font-bold font-mono px-2 py-1 rounded-md bg-(--surface)', meta.color)}>
           {leads.length}
         </span>
       </div>
@@ -133,8 +133,8 @@ function KanbanColumn({ stage, leads }: { stage: PipelineStage; leads: Lead[] })
       <SortableContext items={leads.map((l) => l.id)} strategy={verticalListSortingStrategy}>
         <div className="flex-1 space-y-2.5 min-h-[200px]">
           {leads.length === 0 && (
-            <div className="h-20 rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-800 flex items-center justify-center">
-              <p className="text-xs text-zinc-400 dark:text-zinc-500">Drop leads here</p>
+            <div className="h-20 rounded-2xl border-2 border-dashed border-white/10 flex items-center justify-center">
+              <p className="text-xs font-semibold text-(--text-secondary)">Drop leads here</p>
             </div>
           )}
           {leads.map((lead) => (
@@ -211,9 +211,9 @@ export function PipelinePage() {
   return (
     <div className="p-6 h-full flex flex-col">
       {/* Header */}
-      <div className="mb-5">
-        <h1 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">Pipeline</h1>
-        <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
+      <div className="mb-6">
+        <h1 className="text-[28px] font-heading font-black text-(--text-primary)">Pipeline</h1>
+        <p className="text-[14px] text-(--text-secondary) font-medium mt-0.5">
           {leads.length} leads across {STAGES.length} stages · Drag to reorder
         </p>
       </div>
