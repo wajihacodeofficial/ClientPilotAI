@@ -72,8 +72,8 @@ function KanbanCard({ lead, isDragging }: { lead: Lead; isDragging?: boolean }) 
               </span>
             </div>
 
-            <p className="text-[11px] font-semibold text-(--text-secondary) mb-2">
-              {CAT_EMOJI[lead.category]} {getCategoryLabel(lead.category)}
+            <p className="text-[11px] font-semibold text-(--text-secondary) mb-2 flex items-center gap-1.5">
+              {(() => { const Icon = CAT_ICON[lead.category] || Store; return <Icon className="h-3.5 w-3.5" />; })()} {getCategoryLabel(lead.category)}
             </p>
 
             <div className="flex items-center gap-1.5 text-[11px] font-semibold text-(--text-secondary) mb-2">

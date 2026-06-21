@@ -2,8 +2,9 @@ import { useState, useMemo, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import {
   X, MapPin, Phone, Globe, ExternalLink, Sparkles, RefreshCw,
-  Send, Save, CheckCircle2,
+  Send, Save, CheckCircle2, Store
 } from 'lucide-react'
+import { CAT_ICON } from '@/lib/icons';
 import {
   Button, Badge, Sheet, Skeleton, Separator, Textarea, Progress,
 } from '@/components/ui'
@@ -442,8 +443,6 @@ export function LeadDetailPanel() {
     updateLeadStageStore(lead.id, stage)
   }
 
-  import { CAT_ICON } from '@/lib/icons';
-  import { Store } from 'lucide-react';
 
   return (
     <Sheet open={!!selectedLeadId} onClose={() => setSelectedLeadId(null)} width="w-[540px]">
