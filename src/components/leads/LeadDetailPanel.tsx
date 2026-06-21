@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   X, MapPin, Phone, Globe, ExternalLink, Sparkles, RefreshCw,
   Send, Save, CheckCircle2, Store, Mail, AlertCircle, Copy, Check,
-  ChevronDown, Loader2, Edit2, AtSign,
+  Loader2, Edit2, AtSign,
 } from 'lucide-react'
 import { CAT_ICON } from '@/lib/icons'
 import {
@@ -352,11 +352,13 @@ function OutreachSection({ lead }: { lead: Lead }) {
   const updateLeadStore = useAppStore((s) => s.updateLead)
   const updateLeadOutreachStore = useAppStore((s) => s.updateLeadOutreach)
 
-  // Use the AI-generated fields first, fall back to outreachMessages[0]
+  // Sync editable fields when the lead prop changes (e.g. after /prepare completes and
+  // LeadDetailPanel re-renders with key={lead.id} forcing a fresh OutreachSection mount).
+  // Initial state is seeded from props so no setState-in-effect is needed.
   const firstMsg = lead.outreachMessages?.[0]
-  const [subject, setSubject] = useState(lead.outreachSubject ?? firstMsg?.subject ?? '')
-  const [body, setBody] = useState(lead.outreachBody ?? firstMsg?.body ?? '')
-  const [recipientEmail, setRecipientEmail] = useState(lead.contactEmail ?? '')
+  const [subject, setSubject] = useState(() => lead.outreachSubject ?? firstMsg?.subject ?? '')
+  const [body, setBody] = useState(() => lead.outreachBody ?? firstMsg?.body ?? '')
+  const [recipientEmail, setRecipientEmail] = useState(() => lead.contactEmail ?? '')
 
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isSending, setIsSending] = useState(false)
@@ -365,19 +367,6 @@ function OutreachSection({ lead }: { lead: Lead }) {
   const [savedSuccess, setSavedSuccess] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // When lead data updates (after prepare completes), refresh local state
-  useEffect(() => {
-    if (lead.outreachSubject && lead.outreachSubject !== subject) {
-      setSubject(lead.outreachSubject)
-    }
-    if (lead.outreachBody && lead.outreachBody !== body) {
-      setBody(lead.outreachBody)
-    }
-    if (lead.contactEmail && !recipientEmail) {
-      setRecipientEmail(lead.contactEmail)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lead.outreachSubject, lead.outreachBody, lead.contactEmail])
 
   const handleRegenerate = async () => {
     setIsRegenerating(true)
@@ -576,25 +565,19 @@ function ProposalSection({ lead }: { lead: Lead }) {
 
   const existingProposal = useMemo(() => proposals.find(p => p.leadId === lead.id), [proposals, lead.id])
 
-  // Use auto-generated content first, then fall back to saved proposal
+  // Initial state seeded from props — no setState-in-effect needed.
+  // ProposalSection is mounted with key={`prop-${lead.id}`} which resets
+  // local state automatically when a different lead is selected.
   const [proposalTitle, setProposalTitle] = useState(
-    existingProposal?.title || `AI Proposal — ${lead.name}`
+    () => existingProposal?.title || `AI Proposal — ${lead.name}`
   )
   const [proposalContent, setProposalContent] = useState(
-    lead.proposalContent || existingProposal?.content || ''
+    () => lead.proposalContent || existingProposal?.content || ''
   )
 
   const [isSaving, setIsSaving] = useState(false)
   const [savedOk, setSavedOk] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
-  // When proposal content arrives from /prepare, populate editors
-  useEffect(() => {
-    if (lead.proposalContent && !proposalContent) {
-      setProposalContent(lead.proposalContent)
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lead.proposalContent])
 
   const handleSave = async () => {
     if (!proposalTitle || !proposalContent) return
@@ -776,6 +759,7 @@ export function LeadDetailPanel() {
           addProposal({
             id: `ai-${lead.id}`,
             leadId: lead.id,
+            workspaceId: '',        // populated by backend on save via saveProposalApi
             title: result.proposalTitle || `AI Proposal — ${lead.name}`,
             content: result.proposalContent,
             status: 'draft',
